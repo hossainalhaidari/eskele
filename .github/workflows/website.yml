@@ -11,6 +11,11 @@ name: Website
 #
 # ci.yml is the other half of the split: it ignores Website/ and Markdown, this one builds nothing
 # but them.
+#
+# Pages itself is turned on once, outside this workflow — Settings ▸ Pages ▸ Source: GitHub Actions,
+# or `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`. actions/configure-pages
+# offers to do it with `enablement: true`, but the token a workflow gets may not create a Pages
+# site: it answers "Resource not accessible by integration".
 
 on:
   push:
@@ -45,12 +50,6 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: Website/package-lock.json
-
-      # Turns Pages on for this repository the first time, so nothing has to be clicked in Settings,
-      # and does nothing on every run after that.
-      - uses: actions/configure-pages@v6
-        with:
-          enablement: true
 
       - run: npm ci
         working-directory: Website
