@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- The bar itself. The three ports are holes punched with even-odd, not dots painted
+       in the background colour: Tahoe's tinted and clear appearances flatten every layer
+       to a single colour, and painted dots would disappear there. -->
+  <path fill="#ffffff" fill-rule="evenodd" d="
+    M 210 285 H 814 A 70 70 0 0 1 884 355 V 411 A 70 70 0 0 1 814 481
+    H 210 A 70 70 0 0 1 140 411 V 355 A 70 70 0 0 1 210 285 Z
+    M 246 383 A 42 42 0 1 0 330 383 A 42 42 0 1 0 246 383 Z
+    M 470 383 A 42 42 0 1 0 554 383 A 42 42 0 1 0 470 383 Z
+    M 694 383 A 42 42 0 1 0 778 383 A 42 42 0 1 0 694 383 Z"/>
+</svg>

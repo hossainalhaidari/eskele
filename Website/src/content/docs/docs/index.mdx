@@ -1,0 +1,92 @@
+---
+title: Overview
+description: What Eskele is, what it replaces, and where to start reading.
+tableOfContents: false
+---
+
+import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Eskele is a minimal macOS dock that can sit on the **left**, **bottom** or **right** edge — and that
+hides the system Dock while it runs.
+
+It is a dock when you want a dock, and a full-width taskbar with a button per window when you want
+that instead. Everything below is a setting, not a mode you have to commit to.
+
+It **collects nothing and sends nothing about you**: zero telemetry, and it goes online only to look
+for an update when you ask. [Privacy](./privacy/) spells out exactly what that request carries.
+
+<CardGrid>
+  <Card title="It looks like the Dock" icon="apple">
+    Big icons, only as wide as they need, centred on the bottom edge. Running dots, badges, folder
+    stacks, a Trash that takes a drop.
+  </Card>
+  <Card title="…or like a taskbar" icon="laptop">
+    Full width at Small scale, a labelled button for every window with the window's own title, and
+    your not-running shortcuts tucked into a tray at the leading end.
+  </Card>
+  <Card title="…or down the side" icon="seti:default">
+    A full-height column on the left or right edge. Up to five rows — columns, on a side bar — so
+    thirty windows still read.
+  </Card>
+  <Card title="And it gets out of the way" icon="moon">
+    Auto-hide with a global reveal key, a choice of what to do inside a full-screen space, and
+    reserved screen space so maximised windows stop short of the bar.
+  </Card>
+</CardGrid>
+
+## Start here
+
+<CardGrid>
+  <LinkCard
+    title="Install and run"
+    href="./install/"
+    description="Build it, put it in /Applications, and start it at login."
+  />
+  <LinkCard
+    title="Permissions"
+    href="./permissions/"
+    description="What each one buys, and why a granted permission sometimes stops working."
+  />
+  <LinkCard
+    title="Layout and designs"
+    href="./layout/"
+    description="Edges, scale, rows, span, alignment, and the three one-click starting points."
+  />
+  <LinkCard
+    title="Clicks and shortcuts"
+    href="./gestures/"
+    description="The modifier grammar, drag and drop, and every global key."
+  />
+</CardGrid>
+
+## The short version of what it adds
+
+| | |
+|---|---|
+| **Window awareness** | One dash per window, a right-click list with Close on each, per-window buttons in labelled mode, and windows in another Space reached four different ways. |
+| **A launcher** | <kbd>⌃Esc</kbd> from anywhere: Favourites, every app by category, recents, every System Settings pane, and the power actions. Type to filter. |
+| **Real badges** | Whatever macOS is already drawing on a Dock tile, drawn on the bar within two seconds. Plus your own, from a command. |
+| **Progress** | Files landing in a pinned folder, the position of a track in Music, Spotify or VLC, or anything you can write a command for. |
+| **Activity** | Hold <kbd>⇧⌥</kbd> and every running app reports processor and memory, helper processes counted in. |
+| **Multi-display** | The same bar everywhere, one bar per display showing only that display's windows, or the main display alone. |
+
+## What it does not do
+
+<Aside type="caution" title="Known limits">
+Some of these are deliberate and some are walls in macOS itself. They are all written up in
+[Known gaps](./known-gaps/) with the reason, so you can tell which is which before you file a bug.
+</Aside>
+
+- It is **not sandboxed**, and cannot be while it controls the Dock — so it will never be on the Mac
+  App Store.
+- It **cannot reserve space inside a native full-screen space**. macOS reserves nothing there but the
+  menu bar.
+- It **cannot see a Dock icon bouncing**. It highlights the dialogs that usually accompany one
+  instead.
+- Releases run on **Apple silicon only** for now.
+
+## Conventions in these docs
+
+Menu paths are written the way macOS writes them: *Settings ▸ Appearance ▸ Material*. Anything in
+`monospace` is a literal — a path, a file, a command. Key names use the standard symbols:
+<kbd>⌘</kbd> command, <kbd>⌥</kbd> option, <kbd>⌃</kbd> control, <kbd>⇧</kbd> shift.

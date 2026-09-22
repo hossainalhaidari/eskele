@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Eskele">
+  <!-- The app icon, flattened to one file: the harbour gradient from
+       Resources/AppIcon.icon/icon.json, with the bar and water layers on top. -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38c8ee"/>
+      <stop offset="1" stop-color="#083f7c"/>
+    </linearGradient>
+    <linearGradient id="reflection" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#ground)"/>
+  <path fill="url(#reflection)" fill-rule="evenodd" d="
+    M 210 551 H 814 A 70 70 0 0 1 884 621 V 677 A 70 70 0 0 1 814 747
+    H 210 A 70 70 0 0 1 140 677 V 621 A 70 70 0 0 1 210 551 Z
+    M 246 649 A 42 42 0 1 0 330 649 A 42 42 0 1 0 246 649 Z
+    M 470 649 A 42 42 0 1 0 554 649 A 42 42 0 1 0 470 649 Z
+    M 694 649 A 42 42 0 1 0 778 649 A 42 42 0 1 0 694 649 Z"/>
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="42">
+    <path opacity="0.55" d="M 150 616 Q 210 560 270 616 T 390 616 T 510 616 T 630 616 T 750 616 T 870 616"/>
+    <path opacity="0.35" d="M 214 762 Q 274 706 334 762 T 454 762 T 574 762 T 694 762 T 814 762"/>
+  </g>
+  <path fill="#ffffff" fill-rule="evenodd" d="
+    M 210 285 H 814 A 70 70 0 0 1 884 355 V 411 A 70 70 0 0 1 814 481
+    H 210 A 70 70 0 0 1 140 411 V 355 A 70 70 0 0 1 210 285 Z
+    M 246 383 A 42 42 0 1 0 330 383 A 42 42 0 1 0 246 383 Z
+    M 470 383 A 42 42 0 1 0 554 383 A 42 42 0 1 0 470 383 Z
+    M 694 383 A 42 42 0 1 0 778 383 A 42 42 0 1 0 694 383 Z"/>
+</svg>

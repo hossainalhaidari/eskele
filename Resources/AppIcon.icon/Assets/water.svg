@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- The bar's reflection: same geometry, 266 lower, fading out downwards. -->
+  <path fill="url(#fade)" fill-rule="evenodd" d="
+    M 210 551 H 814 A 70 70 0 0 1 884 621 V 677 A 70 70 0 0 1 814 747
+    H 210 A 70 70 0 0 1 140 677 V 621 A 70 70 0 0 1 210 551 Z
+    M 246 649 A 42 42 0 1 0 330 649 A 42 42 0 1 0 246 649 Z
+    M 470 649 A 42 42 0 1 0 554 649 A 42 42 0 1 0 470 649 Z
+    M 694 649 A 42 42 0 1 0 778 649 A 42 42 0 1 0 694 649 Z"/>
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="42">
+    <path opacity="0.85" d="M 150 616 Q 210 560 270 616 T 390 616 T 510 616 T 630 616 T 750 616 T 870 616"/>
+    <path opacity="0.6"  d="M 214 762 Q 274 706 334 762 T 454 762 T 574 762 T 694 762 T 814 762"/>
+  </g>
+</svg>

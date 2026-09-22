@@ -1,0 +1,199 @@
+name: Release
+
+# Builds, signs, notarises and publishes a release, with the appcast that tells installed copies
+# about it. Two ways in, both from main only:
+#
+#   - push a tag on a commit that is on main:
+#       git tag v1.2.0 && git push origin v1.2.0
+#   - run it by hand on main, which tags the current main:
+#       Actions → Release → Run workflow, or `gh workflow run release.yml -f version=1.2.0`
+#
+# Installed copies read https://github.com/<repo>/releases/latest/download/appcast.xml (SUFeedURL in
+# Resources/Info.plist), which GitHub redirects to the appcast attached to the newest release. So
+# publishing the release is the whole of publishing the update; there is no site to deploy.
+#
+# The Developer ID, the notary key and the update signing key are secrets of the `release`
+# environment, which only main and v* tags may use. The website's
+# Install page, "One-time setup", says how to set it up.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.2.0. Tags the current main as v1.2.0.'
+        required: true
+        type: string
+
+# One release at a time, and never cancelled half-way: a cancelled run can leave a tag with no
+# release, or a notarisation Apple has accepted that nothing uses.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: macos-latest
+    environment: release
+    permissions:
+      contents: write
+    # Notarisation is usually minutes but has taken an hour.
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The build number is the commit count, and the checks below walk history and tags.
+          fetch-depth: 0
+
+      - name: Work out the version
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT: ${{ inputs.version }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+
+          if [ "$EVENT" = workflow_dispatch ]; then
+            [ "$GITHUB_REF" = refs/heads/main ] || fail "Run this on main, not $GITHUB_REF_NAME."
+            version="${INPUT#v}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          # Plain x.y.z only. A pre-release would never be "latest" on GitHub, so the feed URL
+          # would never reach it.
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "'$version' is not a version like 1.2.0."
+          tag="v$version"
+
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || fail "$tag is on a commit that is not on main."
+          if [ "$EVENT" = workflow_dispatch ] && git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            fail "$tag already exists. Push the tag instead, or pick another version."
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            fail "There is already a release for $tag."
+          fi
+
+          # Sparkle offers an update only if its build number is higher, and the build number is
+          # the commit count — so a release has to come after the previous one on main, not merely
+          # be numbered above it.
+          previous="$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -vx "$tag" | head -n 1 || true)"
+          if [ -n "$previous" ]; then
+            newest="$(printf '%s\n%s\n' "${previous#v}" "$version" | sort -V | tail -n 1)"
+            [ "$newest" = "$version" ] || fail "$tag is not newer than $previous."
+            git merge-base --is-ancestor "$previous" "$GITHUB_SHA" \
+              || fail "$tag is not a descendant of $previous, so its build number could be lower."
+          fi
+
+          key="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' Resources/Info.plist 2>/dev/null || true)"
+          [ -n "$key" ] || fail "Resources/Info.plist has no SUPublicEDKey. Run make update-key and commit it."
+
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "build=$(git rev-list --count "$GITHUB_SHA")"
+            echo "previous=$previous"
+          } >> "$GITHUB_OUTPUT"
+
+      - run: make test
+
+      - name: Install the Developer ID certificate
+        env:
+          CERTIFICATE: ${{ secrets.DEVELOPER_ID_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        run: |
+          # A keychain of its own, unlocked for this job only. Its password is thrown away with it.
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          password="$(openssl rand -base64 32)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 5400 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+
+          printf %s "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          # Lets codesign use the key without a prompt nobody is there to answer.
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+
+          identity="$(security find-identity -v -p codesigning "$keychain" \
+            | awk '/Developer ID Application/ { print $2; exit }')"
+          [ -n "$identity" ] || { echo "::error::DEVELOPER_ID_CERTIFICATE holds no Developer ID Application identity."; exit 1; }
+          echo "SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          echo "RELEASE_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
+      - name: Build, sign and notarise
+        env:
+          ESKELE_VERSION: ${{ steps.version.outputs.version }}
+          ESKELE_BUILD: ${{ steps.version.outputs.build }}
+          NOTARY_API_KEY: ${{ secrets.NOTARY_API_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_API_ISSUER_ID }}
+        run: |
+          export NOTARY_KEY="$RUNNER_TEMP/notary.p8"
+          printf '%s\n' "$NOTARY_API_KEY" > "$NOTARY_KEY"
+          Scripts/package.sh
+          # package.sh skips notarisation when it has no credentials. A release never may.
+          xcrun stapler validate ".build/Eskele-$ESKELE_VERSION.dmg"
+
+      - name: Write the appcast
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          feed="$RUNNER_TEMP/feed"
+          mkdir -p "$feed"
+          cp ".build/Eskele-$VERSION.dmg" "$feed/"
+
+          # The notes are the commit subjects since the last release. Beside the DMG under the same
+          # name, generate_appcast puts them in the appcast for Sparkle's update window; the same
+          # file becomes the GitHub release's description below.
+          if [ -n "$PREVIOUS" ]; then
+            git log --no-merges --format='- %s' "$PREVIOUS..$GITHUB_SHA" > "$feed/Eskele-$VERSION.md"
+          else
+            echo "- The first release." > "$feed/Eskele-$VERSION.md"
+          fi
+
+          echo "$SPARKLE_PRIVATE_KEY" | .build/artifacts/sparkle/Sparkle/bin/generate_appcast \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/" \
+            --embed-release-notes \
+            --link "https://github.com/$GITHUB_REPOSITORY" \
+            --full-release-notes-url "https://github.com/$GITHUB_REPOSITORY/releases" \
+            "$feed"
+
+          # A signature that did not make it in means an update every installed copy would refuse.
+          grep -q 'sparkle:edSignature=' "$feed/appcast.xml" \
+            || { echo "::error::appcast.xml has no EdDSA signature. Is SPARKLE_PRIVATE_KEY set?"; exit 1; }
+          cat "$feed/appcast.xml"
+
+      - name: Publish the release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          feed="$RUNNER_TEMP/feed"
+          # gh uploads the assets to a draft and publishes it only once they are all there, so the
+          # feed URL never finds a latest release without its appcast. For a manual run --target
+          # makes the tag; for a pushed tag it is already there and --target is ignored.
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "Eskele $VERSION" \
+            --notes-file "$feed/Eskele-$VERSION.md" \
+            --latest \
+            "$feed/Eskele-$VERSION.dmg" \
+            "$feed/appcast.xml"
+
+      - name: Remove the signing keychain
+        if: always()
+        run: |
+          [ -z "${RELEASE_KEYCHAIN:-}" ] || security delete-keychain "$RELEASE_KEYCHAIN" || true
+          rm -f "$RUNNER_TEMP/notary.p8"

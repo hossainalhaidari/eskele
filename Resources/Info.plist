@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>Eskele</string>
+	<!-- CFBundleIconFile finds AppIcon.icns (macOS 15 and earlier); CFBundleIconName finds
+	     the same icon inside Assets.car, which Tahoe renders as Liquid Glass. Both are
+	     generated from Resources/AppIcon.icon by Scripts/make-icon.sh. -->
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>de.alhaidari.Eskele</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Eskele</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<!-- The last line of the About panel, and of Finder's Get Info. -->
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Hossain Alhaidari</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>15.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>LSUIElement</key>
+	<true/>
+	<!-- Sparkle. The feed is appcast.xml on the latest GitHub release, which the release workflow
+	     attaches to every release. Scripts/build-app.sh removes SUFeedURL from any build it is not
+	     given a version for, so only a release ever updates itself. SUPublicEDKey is written by
+	     `make update-key`; while it is empty the updater stays off.
+	     Nothing goes out until the user asks: automatic checks start off, which also stops Sparkle
+	     asking about them on the second launch, and the anonymous system profile is never offered.
+	     UpdateService also allows no profile keys, so it stays empty even if the defaults turn it on. -->
+	<key>SUFeedURL</key>
+	<string>https://github.com/hossainalhaidari/eskele/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>H9aFUbRTGAnnfFIAlFhUSEKvoe5rEtulOypJCt/z5Js=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>SUEnableSystemProfiling</key>
+	<false/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Eskele asks Finder to empty the Trash. macOS provides no other way to do it.</string>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Add to Eskele</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>addToBar</string>
+			<key>NSPortName</key>
+			<string>Eskele</string>
+			<!-- public.item covers applications, folders and plain files, which is exactly the set
+			     the bar can pin. -->
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,137 @@
+---
+/**
+ * A drawn macOS desktop with the bar on it, and three buttons that reshape the
+ * bar into each of the designs Settings ships with. Everything here is CSS on
+ * real elements rather than a screenshot, so it stays sharp at any size, follows
+ * the page's light and dark themes, and costs no image bytes.
+ */
+
+const apps = [
+  { name: 'Finder', hue: 'finder', dots: 2 },
+  { name: 'Safari', hue: 'safari', dots: 3, title: 'Eskele — a dock for macOS' },
+  { name: 'Mail', hue: 'mail', dots: 1, badge: '12' },
+  { name: 'Messages', hue: 'messages', dots: 1, badge: '3' },
+  { name: 'Music', hue: 'music', dots: 1, progress: 34 },
+  { name: 'Xcode', hue: 'xcode', dots: 2 },
+  { name: 'Terminal', hue: 'terminal', dots: 1 },
+  { name: 'Notes', hue: 'notes', dots: 0 },
+  { name: 'Downloads', hue: 'folder', dots: 0, progress: 62 },
+];
+---
+
+<div class="mock" data-design="dock">
+  <div class="mock__frame">
+    <div class="mock__screen" aria-hidden="true">
+      <div class="mock__menubar">
+        <span class="mock__mb-mark"></span>
+        <span class="mock__mb-item mock__mb-item--bold"></span>
+        <span class="mock__mb-item"></span>
+        <span class="mock__mb-item"></span>
+        <span class="mock__mb-spacer"></span>
+        <span class="mock__mb-item mock__mb-item--sm"></span>
+        <span class="mock__mb-item mock__mb-item--sm"></span>
+        <span class="mock__mb-clock"></span>
+      </div>
+
+      <div class="mock__stage">
+        <div class="mock__window">
+          <div class="mock__titlebar">
+            <i class="mock__light mock__light--r"></i>
+            <i class="mock__light mock__light--y"></i>
+            <i class="mock__light mock__light--g"></i>
+          </div>
+          <div class="mock__body">
+            <span class="mock__line" style="--w: 62%"></span>
+            <span class="mock__line" style="--w: 88%"></span>
+            <span class="mock__line" style="--w: 74%"></span>
+            <span class="mock__line" style="--w: 40%"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bar">
+        <button class="bar__launcher" type="button" tabindex="-1">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+            <rect x="1" y="1" width="6" height="6" rx="1.6" />
+            <rect x="9" y="1" width="6" height="6" rx="1.6" />
+            <rect x="1" y="9" width="6" height="6" rx="1.6" />
+            <rect x="9" y="9" width="6" height="6" rx="1.6" />
+          </svg>
+        </button>
+
+        <span class="bar__sep"></span>
+
+        {
+          apps.map((app) => (
+            <span class={`cell cell--${app.hue}`} data-dots={app.dots}>
+              <span class="cell__icon">
+                {app.badge && <span class="cell__badge">{app.badge}</span>}
+                {app.progress !== undefined && (
+                  <span class="cell__bar" style={`--p: ${app.progress}%`} />
+                )}
+              </span>
+              <span class="cell__label">{app.title ?? app.name}</span>
+              <span class="cell__dots">
+                {Array.from({ length: Math.min(app.dots, 4) }).map(() => (
+                  <i />
+                ))}
+              </span>
+              {app.progress !== undefined && (
+                <span class="cell__fill" style={`--p: ${app.progress}%`} />
+              )}
+            </span>
+          ))
+        }
+
+        <span class="bar__grow"></span>
+
+        <span class="cell cell--trash" data-dots="0">
+          <span class="cell__icon">
+            <span class="cell__badge cell__badge--soft">4</span>
+          </span>
+          <span class="cell__label">Trash</span>
+          <span class="cell__dots"></span>
+        </span>
+
+        <span class="bar__clock"><b>9:41</b><em>Thu 4 Sep</em></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock__switch">
+    <span class="mock__switch-label">Design</span>
+    <div class="mock__switch-group">
+      <button type="button" data-set="dock" aria-pressed="true">Dock</button>
+      <button type="button" data-set="classic" aria-pressed="false">Classic</button>
+      <button type="button" data-set="unity" aria-pressed="false">Unity</button>
+    </div>
+    <p class="mock__caption" data-caption>
+      Big, on the bottom edge, only as wide as its icons, centred. The default.
+    </p>
+  </div>
+</div>
+
+<script>
+  const captions: Record<string, string> = {
+    dock: 'Big, on the bottom edge, only as wide as its icons, centred. The default.',
+    classic:
+      'A full-width taskbar across the bottom at Small scale, labelled buttons from the left.',
+    unity: 'A full-height column of big icons down the left edge, from the top.',
+  };
+
+  for (const mock of document.querySelectorAll<HTMLElement>('.mock')) {
+    const buttons = mock.querySelectorAll<HTMLButtonElement>('[data-set]');
+    const caption = mock.querySelector<HTMLElement>('[data-caption]');
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const design = button.dataset.set!;
+        mock.dataset.design = design;
+        for (const other of buttons) {
+          other.setAttribute('aria-pressed', String(other === button));
+        }
+        if (caption) caption.textContent = captions[design] ?? '';
+      });
+    }
+  }
+</script>

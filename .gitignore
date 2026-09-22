@@ -1,0 +1,17 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Packaging output (Scripts/package.sh writes into .build, but not if someone redirects it)
+*.dmg
+
+# macOS
+.DS_Store
+
+# Other
+TODO.md

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Eskele — English plural rules.
+
+     The five strings in the app that quote a count. They are here rather than in
+     Localizable.strings because how many forms a count needs is a property of the language: English
+     needs two, Polish three, Arabic six. A `switch` in Swift could only ever offer the two this
+     language happens to want, which is why none of these is decided in code.
+
+     To translate: copy this file into your <code>.lproj beside Localizable.strings and give each
+     NSStringFormatValueTypeKey dictionary the categories your language uses — zero, one, two, few,
+     many, other. "other" is required; the rest are optional and only "other" is read for a category
+     your language does not have. Keep every key, and keep %lld where it stands.
+-->
+<plist version="1.0">
+<dict>
+	<!-- How many things are in the Trash, shown greyed out under its menu. -->
+	<key>%lld items</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld item</string>
+			<key>other</key>
+			<string>%lld items</string>
+		</dict>
+	</dict>
+
+	<!-- The Empty Trash confirmation, when the count is known to be exact. -->
+	<key>Are you sure you want to permanently erase the %lld items in the Trash?</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Are you sure you want to permanently erase the %lld item in the Trash?</string>
+			<key>other</key>
+			<string>Are you sure you want to permanently erase the %lld items in the Trash?</string>
+		</dict>
+	</dict>
+
+	<!-- How many rows a bottom bar is drawn with. -->
+	<key>%lld rows</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld row</string>
+			<key>other</key>
+			<string>%lld rows</string>
+		</dict>
+	</dict>
+
+	<!-- The same count on a left or right bar, where the rows are columns. A separate key rather
+	     than a noun pasted into a sentence: a language that inflects the number to agree with the
+	     noun cannot be served by one rule covering both words. -->
+	<key>%lld columns</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld column</string>
+			<key>other</key>
+			<string>%lld columns</string>
+		</dict>
+	</dict>
+
+	<!-- Read by VoiceOver on an app's cell: how many windows it has open. The Trash's count reuses
+	     "%lld items" above. -->
+	<key>%lld windows</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld window</string>
+			<key>other</key>
+			<string>%lld windows</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

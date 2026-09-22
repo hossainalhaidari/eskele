@@ -1,0 +1,28 @@
+/* Eskele — English (development language)
+
+   The strings that live in Info.plist rather than in code: the ones macOS itself shows, before and
+   outside the app's own windows. They are keyed by their Info.plist key, not by their English text,
+   because that is what the bundle loader looks them up by.
+
+   To add a language, copy this file into your <code>.lproj beside Localizable.strings and translate
+   only the value on the right of each "=".
+
+   NSServices is the one entry here whose localisation this repository has not been able to verify:
+   it needs a Mac running in another language and a look at Finder's Services menu. Apple documents
+   the English menu title as the key; if a translation of it never appears, that is where to look.
+*/
+
+/* The app's name. A proper noun — translate it only if the name itself changes in your language. */
+"CFBundleName" = "Eskele";
+
+/* The copyright line at the foot of the About panel and of Finder's Get Info window. Keep the
+   name as it is; translate only the word "Copyright" where your language has its own. */
+"NSHumanReadableCopyright" = "Copyright © 2026 Hossain Alhaidari";
+
+/* Shown by macOS in the Automation consent prompt, and afterwards in System Settings ▸ Privacy &
+   Security ▸ Automation. It has to say why the app wants to control Finder. */
+"NSAppleEventsUsageDescription" = "Eskele asks Finder to empty the Trash. macOS provides no other way to do it.";
+
+/* The entry Eskele adds to Finder's Services menu, reached by right-clicking a file, folder or
+   application. Keyed by its English title. */
+"Add to Eskele" = "Add to Eskele";

@@ -1,0 +1,526 @@
+---
+import '../styles/theme.css';
+import '../styles/landing.css';
+import DesktopMock from '../components/DesktopMock.astro';
+import { url } from '../lib/url';
+
+const repo = 'https://github.com/hossainalhaidari/eskele';
+const releases = `${repo}/releases`;
+
+const title = 'Eskele — a minimal macOS dock';
+const description =
+  'A minimal macOS dock that sits on the left, bottom or right edge and hides the system Dock while it runs.';
+
+const features = [
+  {
+    icon: 'edges',
+    title: 'Three edges, five rows',
+    body: 'Left, bottom or right. Sized to its icons or stretched full width, one row or five, aligned where you want it. A side bar is a column and behaves like one.',
+  },
+  {
+    icon: 'taskbar',
+    title: 'A dock, or a taskbar',
+    body: 'Icons Only keeps it a dock. Icons with Labels turns every running app into a named button, and in full-width mode every window gets its own, titled with the window.',
+  },
+  {
+    icon: 'badge',
+    title: 'Real badges, from the Dock',
+    body: "Mail's unread count, Messages, App Store updates — whatever macOS is already drawing on a Dock tile appears on the bar within two seconds, with nothing to configure.",
+  },
+  {
+    icon: 'search',
+    title: 'A launcher on ⌃Esc',
+    body: 'Favourites, every app grouped by category, and what you used recently. Type to filter — initials work, so vsc finds Visual Studio Code — then press Return.',
+  },
+  {
+    icon: 'window',
+    title: 'It knows about windows',
+    body: 'One dash per window, a right-click list you can close from, windows in another Space reached four different ways, and a live thumbnail on hover.',
+  },
+  {
+    icon: 'progress',
+    title: 'Progress where it happens',
+    body: 'Files landing in a pinned folder fill its cell, with no permission at all. Music, Spotify and VLC report their position. Anything else can come from a command you write.',
+  },
+  {
+    icon: 'gauge',
+    title: 'Activity on ⇧⌥',
+    body: 'Hold two modifiers and every running app reports processor and memory, helper processes included. Nothing is sampled until the keys go down.',
+  },
+  {
+    icon: 'dock',
+    title: 'Hides the system Dock',
+    body: 'Optional, off by default, and reversible. Your Dock preferences are captured before anything is written and restored on quit — including after a crash.',
+  },
+  {
+    icon: 'clock',
+    title: 'Clock, calendar, Trash',
+    body: 'A digital clock or a drawn dial at the far end, hover it for the month. A Trash cell that counts what it holds and accepts a drop.',
+  },
+];
+
+const icons: Record<string, string> = {
+  edges:
+    '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 16.5h18"/><circle cx="8" cy="18.2" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="18.2" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="18.2" r="0.9" fill="currentColor" stroke="none"/>',
+  taskbar:
+    '<rect x="2.5" y="7" width="6" height="4.5" rx="1"/><rect x="10.5" y="7" width="11" height="4.5" rx="1"/><rect x="2.5" y="14" width="11" height="4.5" rx="1"/><rect x="15.5" y="14" width="6" height="4.5" rx="1"/>',
+  badge:
+    '<rect x="3" y="5" width="13" height="13" rx="3"/><circle cx="18.5" cy="6.5" r="3.5" fill="currentColor" stroke="none"/>',
+  search:
+    '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21"/>',
+  window:
+    '<rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M2.5 9h19"/><circle cx="5.6" cy="6.7" r="0.8" fill="currentColor" stroke="none"/><circle cx="8.2" cy="6.7" r="0.8" fill="currentColor" stroke="none"/>',
+  progress:
+    '<rect x="2.5" y="9.5" width="19" height="5" rx="2.5"/><path d="M2.5 12h11" stroke-width="5" stroke-linecap="round"/>',
+  gauge:
+    '<path d="M4 18a8.5 8.5 0 1 1 16 0"/><path d="M12 18l4.2-5"/><circle cx="12" cy="18" r="1.4" fill="currentColor" stroke="none"/>',
+  dock: '<rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="M6.5 16h11" stroke-width="3.2" stroke-linecap="round"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 2"/>',
+};
+
+const gestures = [
+  ['Click', 'Launch or activate. Clicking the app you are already in hides it.'],
+  ['⌘-click', 'Show in Finder.'],
+  ['⌥-click', 'Hide the app, or bring it back.'],
+  ['⌥⌘-click', 'Show this app and hide every other one.'],
+  ['⇧-click', 'Quit the app — or, on a window button, close that window.'],
+  ['⇧⌘-click', 'Force-quit the app and start it again.'],
+  ['Middle-click', 'The same as ⇧-click.'],
+  ['⌃-click', 'The context menu, as everywhere else in macOS.'],
+  ['Drag', 'Reorder. Drag off the bar to unpin; hold ⌘ to make that impossible.'],
+  ['Drop a file', 'On an app to open it there, or on the Trash to trash it.'],
+];
+
+const keys = [
+  ['⌃Esc', 'Open the Apps Menu from anywhere. ⌥Space and a right-⌘ tap are the alternatives.'],
+  ['⌃⌥⇥', 'Move focus to the bar: arrows to move, Return to open, Esc to go back. VoiceOver reads each item.'],
+  ['⌃⌥D', 'Show or hide the bar, wherever you are.'],
+  ['⌃⌥1…0', 'Activate the first ten items. Hold ⌃⌥ and the bar numbers them for you.'],
+  ['⇧⌥', 'Hold to read every app’s processor and memory use.'],
+];
+
+const permissions = [
+  ['Nothing', 'The bar, pinned apps, folder stacks, launching, reordering, the Trash cell, auto-hide, the reveal and slot hot keys, the activity overlay, folder progress, the clock, hiding the system Dock.'],
+  ['Accessibility', 'Window lists and counts, per-window buttons, full-screen detection, “not responding”, real Dock badges, per-display window filtering, the attention glow, and the right-⌘ tap if you pick it.'],
+  ['Screen Recording', 'Window previews on hover. The only feature that asks for it, and it is off by default.'],
+  ['Automation', 'Emptying the Trash (Finder), Sleep / Log Out / Restart / Shut Down (loginwindow), and media progress (one prompt per player).'],
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <link rel="canonical" href={new URL(url('/'), Astro.site ?? 'https://example.com')} />
+    <meta name="color-scheme" content="light dark" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      // Runs before first paint, and reads the same key Starlight's theme
+      // selector writes, so a choice made in the docs is honoured here too.
+      try {
+        const stored = localStorage.getItem('starlight-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch {}
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="masthead" data-masthead>
+      <div class="wrap masthead__inner">
+        <a class="brand" href={url('/')}>
+          <img src={url("/favicon.svg")} width="28" height="28" alt="" />
+          Eskele
+        </a>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#control">Controls</a>
+          <a href="#permissions">Permissions</a>
+          <a href={url('/docs/')}>Docs</a>
+          <a href={repo}>GitHub</a>
+          <button
+            class="theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-label="Switch between light and dark"
+          >
+            <svg class="sun" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4.2" /><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" />
+            </svg>
+            <svg class="moon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z" />
+            </svg>
+          </button>
+          <a class="is-cta" href={releases}>Download</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ------------------------------------------------------------ hero -->
+      <section class="hero">
+        <div class="wrap">
+          <div class="hero__inner">
+            <a class="eyebrow" href={repo}>
+              <b>Open source</b> Built in Swift, for macOS
+            </a>
+            <h1>
+              A dock when you want one,<br class="only-wide" />
+              <span class="grad">a taskbar when you don't.</span>
+            </h1>
+            <p class="lede">
+              Eskele is a minimal macOS dock that sits on the left, bottom or right edge
+              and hides the system Dock while it runs. It gives back the things the real
+              Dock never had — window lists, a searchable launcher, live progress, a
+              full-width taskbar mode — and keeps the things it did.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn--primary" href={releases}>
+                Download for macOS
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3.5v12M6.8 10.6 12 15.8l5.2-5.2M4.5 19.5h15" />
+                </svg>
+              </a>
+              <a class="btn btn--ghost" href={url('/docs/')}>Read the docs</a>
+            </div>
+            <p class="hero__note">
+              Nothing in the core bar needs a permission. Free, open source, and it puts
+              your Dock back exactly as it found it.
+            </p>
+          </div>
+
+          <DesktopMock />
+        </div>
+      </section>
+
+      <!-- -------------------------------------------------------- features -->
+      <section id="features" class="sunk">
+        <div class="wrap">
+          <div class="section-head is-centred">
+            <span class="kicker">What it does</span>
+            <h2>A bar that earns the strip it takes</h2>
+            <p>
+              Every one of these is a setting, not a mode you have to commit to. Change
+              your mind and the bar follows.
+            </p>
+          </div>
+          <div class="grid">
+            {
+              features.map((feature) => (
+                <article class="card">
+                  <div class="ico">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      set:html={icons[feature.icon]}
+                    />
+                  </div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ spotlights -->
+      <section>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="kicker">A closer look</span>
+            <h2>Three things worth the tour</h2>
+          </div>
+
+          <div class="spotlight">
+            <div>
+              <h3>Press ⌃Esc and start typing</h3>
+              <p>
+                The Apps Menu is the launcher at the leading end of the bar. The search
+                field is focused the moment it opens, so you never reach for the mouse.
+              </p>
+              <ul>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Matches are ranked and initials work — <code>vsc</code> finds Visual
+                  Studio Code.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Every System Settings pane is in the same list, opened straight to it.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Sleep, Log Out, Restart and Shut Down are a fixed row of buttons, not
+                  four rows you have to scroll to.
+                </li>
+              </ul>
+            </div>
+            <div class="spotlight__art">
+              <div class="launcher">
+                <div class="launcher__search">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.4 15.4 21 21" /></svg>
+                  <span class="typed">displ</span>
+                </div>
+                <div class="launcher__row is-on">
+                  <span class="launcher__tile" style="--c1:#8fb8ff;--c2:#3560c8"></span>
+                  <span>Displays</span><span>System Settings</span>
+                </div>
+                <div class="launcher__row">
+                  <span class="launcher__tile" style="--c1:#c0cddb;--c2:#7c8fa2"></span>
+                  <span>Display Calibrator</span><span>Utilities</span>
+                </div>
+                <div class="launcher__row">
+                  <span class="launcher__tile" style="--c1:#ffd67a;--c2:#e0951b"></span>
+                  <span>Desktop &amp; Dock</span><span>System Settings</span>
+                </div>
+                <div class="launcher__power">
+                  <span>Sleep</span><span>Log Out</span><span>Restart</span><span>Shut Down</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spotlight">
+            <div>
+              <h3>A cell says more than an icon</h3>
+              <p>
+                The badge is the app's real one, read off the Dock's own tiles. The
+                stripes are a status. The scrim is what that app is costing you right
+                now.
+              </p>
+              <ul>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Neutral stripes while an app is starting; red while it is not
+                  responding.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  An amber glow when an app puts a dialog up behind your back.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  A badge the Dock does not carry can come from a command in
+                  <code>badges.json</code>.
+                </li>
+              </ul>
+            </div>
+            <div class="spotlight__art">
+              <div class="tiles">
+                <div class="tile" style="--c1:#63b8ff;--c2:#1f5fd0">
+                  <b>12</b><i></i>
+                </div>
+                <div class="tile tile--striped tile--striped-neutral" style="--c1:#7fb6ff;--c2:#2258c4"><i></i></div>
+                <div class="tile tile--striped" style="--c1:#4a5764;--c2:#1c242d"><i></i></div>
+                <div class="tile" style="--c1:#ff7a8c;--c2:#e0344f">
+                  <span class="scrim">18%<em>1.2 GB</em></span>
+                </div>
+              </div>
+              <p class="tile-caption">
+                Unread · starting · not responding · holding ⇧⌥
+              </p>
+            </div>
+          </div>
+
+          <div class="spotlight">
+            <div>
+              <h3>Windows, not just applications</h3>
+              <p>
+                Grant Accessibility and the bar stops guessing. Apps show one dash per
+                window, up to four; right-click for the list, with minimised windows
+                indented and a Close on each.
+              </p>
+              <ul>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  In full-width labelled mode each window gets its own button, titled
+                  with the window rather than the app.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Windows in a full-screen Space are reached four ways, best first —
+                  including the app's own Window menu.
+                </li>
+                <li>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 6.4 12 13 4.6" /></svg>
+                  Turn on Window Previews and the hover label grows a live thumbnail —
+                  even for a minimised window.
+                </li>
+              </ul>
+            </div>
+            <div class="spotlight__art">
+              <div class="launcher">
+                <div class="launcher__search" style="justify-content:space-between">
+                  <span>Safari</span><span>3 windows</span>
+                </div>
+                <div class="launcher__row is-on">
+                  <span class="launcher__tile" style="--c1:#5fd0ff;--c2:#0d6fbe"></span>
+                  <span>Eskele — a dock for macOS</span><span>Close</span>
+                </div>
+                <div class="launcher__row">
+                  <span class="launcher__tile" style="--c1:#5fd0ff;--c2:#0d6fbe"></span>
+                  <span>Accessibility — Apple Developer</span><span>Close</span>
+                </div>
+                <div class="launcher__row" style="padding-inline-start:2rem;opacity:.7">
+                  <span class="launcher__tile" style="--c1:#5fd0ff;--c2:#0d6fbe"></span>
+                  <span>Release notes</span><span>Minimised</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- control -->
+      <section id="control" class="sunk">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="kicker">Controls</span>
+            <h2>A click grammar you already know</h2>
+            <p>
+              The modifier combinations are uBar's, so the muscle memory carries across.
+              A gesture that means nothing on the cell under the pointer does nothing at
+              all.
+            </p>
+          </div>
+          <div class="two-up">
+            <div class="table-card">
+              <table>
+                <thead>
+                  <tr><th>Gesture</th><th>Effect</th></tr>
+                </thead>
+                <tbody>
+                  {
+                    gestures.map(([gesture, effect]) => (
+                      <tr>
+                        <td>{gesture}</td>
+                        <td>{effect}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="table-card">
+              <table>
+                <thead>
+                  <tr><th>Key</th><th>Effect</th></tr>
+                </thead>
+                <tbody>
+                  {
+                    keys.map(([key, effect]) => (
+                      <tr>
+                        <td><kbd>{key}</kbd></td>
+                        <td>{effect}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------- permissions -->
+      <section id="permissions">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="kicker">Permissions</span>
+            <h2>What costs what</h2>
+            <p>
+              The bar works out of the box without granting anything. Each permission
+              below buys a specific set of features and nothing else — and every one of
+              them is optional.
+            </p>
+          </div>
+          <ul class="perm-list">
+            {
+              permissions.map(([name, what]) => (
+                <li>
+                  <strong>{name}</strong>
+                  <span>{what}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------------- close -->
+      <section>
+        <div class="wrap">
+          <div class="closer">
+            <h2>Take the strip back</h2>
+            <p>
+              Install it, put it on an edge, and read the docs when you want the parts
+              that are not obvious.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn--primary" href={releases}>Download for macOS</a>
+              <a class="btn btn--ghost" href={url('/docs/install/')}>Build from source</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Eskele — a minimal macOS dock.</span>
+        <nav>
+          <a href={url('/docs/')}>Documentation</a>
+          <a href={url('/docs/permissions/')}>Permissions</a>
+          <a href={url('/docs/privacy/')}>Privacy</a>
+          <a href={url('/docs/troubleshooting/')}>Troubleshooting</a>
+          <a href={repo}>Source</a>
+          <a href={`${repo}/blob/main/LICENSE`}>MIT License</a>
+          <a href={url('/docs/transparency/')}>Transparency</a>
+          <a href={`${repo}/issues`}>Issues</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script is:inline>
+      // Theme toggle. Writes the key Starlight reads, so the choice survives the
+      // walk from here into the docs and back.
+      const root = document.documentElement;
+      const toggle = document.querySelector('[data-theme-toggle]');
+
+      const current = () =>
+        root.dataset.theme ??
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+      toggle?.addEventListener('click', () => {
+        const next = current() === 'dark' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try {
+          localStorage.setItem('starlight-theme', next);
+        } catch {}
+      });
+
+      // Hairline under the header, once it has something to separate.
+      const masthead = document.querySelector('[data-masthead]');
+      const onScroll = () => {
+        masthead?.setAttribute('data-stuck', String(window.scrollY > 8));
+      };
+      onScroll();
+      addEventListener('scroll', onScroll, { passive: true });
+    </script>
+  </body>
+</html>

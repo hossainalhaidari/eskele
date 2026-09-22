@@ -1,0 +1,30 @@
+name: CI
+
+# Builds and tests on every push to main and every pull request.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['Website/**', '**.md']
+  pull_request:
+    paths-ignore: ['Website/**', '**.md']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    # About 30 seconds locally. The cap is for a hung test, which would otherwise hold the run open
+    # for six hours, GitHub's default, before failing.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - run: swift --version
+      - run: make build
+      - run: make test
