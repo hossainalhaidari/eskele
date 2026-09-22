@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://hossainalhaidari.github.io/eskele/">Website</a> ·
-  <a href="https://hossainalhaidari.github.io/eskele/docs/">Documentation</a> ·
+  <a href="https://hossain.al/eskele/">Website</a> ·
+  <a href="https://hossain.al/eskele/docs/">Documentation</a> ·
   <a href="https://github.com/hossainalhaidari/eskele/releases">Download</a>
 </p>
 
@@ -25,7 +25,7 @@ make test   # run the test suite
 ```
 
 Eskele has no Dock tile or window of its own — look for its icon in the menu bar. Everything else,
-from permissions to troubleshooting, is in the [documentation](https://hossainalhaidari.github.io/eskele/docs/).
+from permissions to troubleshooting, is in the [documentation](https://hossain.al/eskele/docs/).
 The design and the reasoning behind it are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 If your system Dock is ever left hidden:
@@ -47,5 +47,5 @@ Eskele is released under the [MIT License](LICENSE).
 **Eskele is provided "as is", without warranty of any kind**, express or implied, including but not
 limited to the warranties of merchantability, fitness for a particular purpose and non-infringement.
 In no event shall the authors be liable for any claim, damages or other liability arising from, out
-of or in connection with the software or its use. See [Transparency](https://hossainalhaidari.github.io/eskele/docs/transparency/)
+of or in connection with the software or its use. See [Transparency](https://hossain.al/eskele/docs/transparency/)
 for how the project was built.

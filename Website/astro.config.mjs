@@ -6,7 +6,9 @@ import starlight from '@astrojs/starlight';
 // component of any kind. Starlight's search is Pagefind, which is a static index
 // queried in the browser, so the docs stay searchable on any dumb file host.
 export default defineConfig({
-  site: 'https://hossainalhaidari.github.io',
+  // The user site carries the custom domain, so every project site of this account is served
+  // under it at /<repository> — hence hossain.al plus the base below.
+  site: 'https://hossain.al',
   base: '/eskele',
   trailingSlash: 'always',
   integrations: [

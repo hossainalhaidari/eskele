@@ -1,0 +1,74 @@
+name: Website
+
+# Builds the Astro site in Website/ and publishes it to GitHub Pages, for every push to main that
+# touches it. A push that changes only the app leaves the site alone: it would deploy the same
+# bytes again.
+#
+# The address is https://hossain.al/eskele/. It comes from the user site: hossainalhaidari.github.io
+# carries the custom domain, and GitHub then serves every project site of this account under it at
+# /<repository>, which is what `base` in Website/astro.config.mjs says. There is deliberately no
+# CNAME file here — one would claim the apex for this repository instead of the user site.
+#
+# ci.yml is the other half of the split: it ignores Website/ and Markdown, this one builds nothing
+# but them.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Website/**'
+      - '.github/workflows/website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # deploy-pages authenticates with an OIDC token rather than a secret, which is what id-token buys.
+  pages: write
+  id-token: write
+
+# One deployment at a time, and a newer push supersedes one still building: only the last result is
+# ever served.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # Astro 7 wants 22.12 or newer.
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Website/package-lock.json
+
+      # Turns Pages on for this repository the first time, so nothing has to be clicked in Settings,
+      # and does nothing on every run after that.
+      - uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
+      - run: npm ci
+        working-directory: Website
+
+      - run: npm run build
+        working-directory: Website
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: Website/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

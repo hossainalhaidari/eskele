@@ -77,7 +77,7 @@ If the app's designs change, the geometry to edit is in the `design: Dock` / `de
 The site is configured for a **GitHub Pages project site**:
 
 ```js
-site: 'https://hossainalhaidari.github.io',
+site: 'https://hossain.al',
 base: '/eskele',
 ```
 
