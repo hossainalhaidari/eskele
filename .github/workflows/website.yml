@@ -46,8 +46,11 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          # Astro 7 wants 22.12 or newer.
-          node-version: '22'
+          # The Node the lock file was written by, not merely one Astro 7 accepts (22.12 or newer).
+          # package-lock.json is a resolved tree, and the npm of an older Node resolves a different
+          # one — Node 22's refused this lock over two optional sharp dependencies it expected to
+          # find in it. Whoever changes this changes .nvmrc with it, and runs npm install after.
+          node-version-file: Website/.nvmrc
           cache: npm
           cache-dependency-path: Website/package-lock.json
 
