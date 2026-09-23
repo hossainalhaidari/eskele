@@ -1826,6 +1826,7 @@ copy, which waits on v0.1.1 (§5.28).
 ```
 eskele/
 ├── ARCHITECTURE.md
+├── CHANGELOG.md                what each release changed, and the notes it ships with
 ├── README.md
 ├── Eskele.xcodeproj
 ├── Sources/Eskele/             app target

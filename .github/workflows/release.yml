@@ -12,6 +12,10 @@ name: Release
 # Resources/Info.plist), which GitHub redirects to the appcast attached to the newest release. So
 # publishing the release is the whole of publishing the update; there is no site to deploy.
 #
+# What a release says for itself is CHANGELOG.md's section for its version, which becomes both the
+# GitHub release's description and the notes Eskele shows in its update window. A version with no
+# section there is refused before anything is built.
+#
 # The Developer ID, the notary key and the update signing key are secrets of the `release`
 # environment, which only main and v* tags may use. The website's
 # Install page, "One-time setup", says how to set it up.
@@ -93,6 +97,10 @@ jobs:
           key="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' Resources/Info.plist 2>/dev/null || true)"
           [ -n "$key" ] || fail "Resources/Info.plist has no SUPublicEDKey. Run make update-key and commit it."
 
+          # Checked here rather than where the notes are written, which is after a notarisation.
+          grep -q "^## \[$version\]" CHANGELOG.md \
+            || fail "CHANGELOG.md has no '## [$version]' section. Every release says what changed."
+
           {
             echo "version=$version"
             echo "tag=$tag"
@@ -153,14 +161,20 @@ jobs:
           mkdir -p "$feed"
           cp ".build/Eskele-$VERSION.dmg" "$feed/"
 
-          # The notes are the commit subjects since the last release. Beside the DMG under the same
-          # name, generate_appcast puts them in the appcast for Sparkle's update window; the same
-          # file becomes the GitHub release's description below.
-          if [ -n "$PREVIOUS" ]; then
-            git log --no-merges --format='- %s' "$PREVIOUS..$GITHUB_SHA" > "$feed/Eskele-$VERSION.md"
-          else
-            echo "- The first release." > "$feed/Eskele-$VERSION.md"
-          fi
+          # The notes are this version's section of CHANGELOG.md — the app's own record. Commit
+          # subjects would carry the website's changes too, which nobody installs. Beside the DMG
+          # under the same name, generate_appcast puts them in the appcast for Sparkle's update
+          # window; the same file becomes the GitHub release's description below.
+          notes="$feed/Eskele-$VERSION.md"
+          awk -v heading="## [$VERSION]" '
+            index($0, heading) == 1 { inside = 1; next }
+            # The next version, or the link definitions the file ends with.
+            inside && (/^## / || /^\[[^]]+\]: /) { exit }
+            inside { print }
+          ' CHANGELOG.md > "$notes"
+          grep -q '[^[:space:]]' "$notes" \
+            || { echo "::error::CHANGELOG.md has an empty section for $VERSION."; exit 1; }
+          cat "$notes"
 
           echo "$SPARKLE_PRIVATE_KEY" | .build/artifacts/sparkle/Sparkle/bin/generate_appcast \
             --ed-key-file - \
