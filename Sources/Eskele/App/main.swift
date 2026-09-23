@@ -59,7 +59,7 @@ if CommandLine.arguments.contains("--diagnose") {
     if requirement.contains("cdhash") {
         report += """
               ⚠︎  Ad-hoc signature: macOS will forget every permission on the next rebuild.
-                 See https://hossainalhaidari.github.io/eskele/docs/permissions/
+                 See https://eskele.app/docs/permissions/
 
             """
     }

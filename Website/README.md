@@ -74,22 +74,23 @@ If the app's designs change, the geometry to edit is in the `design: Dock` / `de
 
 ## Deploying
 
-The site is configured for a **GitHub Pages project site**:
+`.github/workflows/website.yml` builds this directory and publishes it to GitHub Pages on every push
+to `main` that touches it. The site has a domain of its own and sits at the root of it:
 
 ```js
-site: 'https://hossain.al',
-base: '/eskele',
+site: 'https://eskele.app',
 ```
 
-Every internal link on the hand-written pages goes through `src/lib/url.ts`, and Starlight handles its
-own, so those two lines are almost the only place the deployment path is written down. It appears
-verbatim in two other spots that cannot route through a helper:
+`public/CNAME` claims that domain for the repository, and the repository's Pages settings say the
+same. There is no `base`, because nothing is served under a path.
+
+**Moving it under one** — a project site at `<user>.github.io/eskele/`, say — means adding
+`base: '/eskele'` back. Every internal link on the hand-written pages goes through `src/lib/url.ts`
+and Starlight handles its own, so that line does almost all of it. Two places cannot route through a
+helper and need the prefix written out:
 
 - the `hero.actions` links in `src/content/docs/404.md` (frontmatter, not code);
 - the URL that `make docs` echoes, in the repository root `Makefile`.
-
-**Deploying to a custom domain or the root of a host instead?** Remove the `base` line, set `site` to
-the real origin, and drop the `/eskele` prefix from those three places.
 
 To publish to GitHub Pages, build and serve `dist/` — for example with `actions/deploy-pages`, or by
 pushing `dist/` to a `gh-pages` branch.

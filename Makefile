@@ -47,10 +47,9 @@ $(WEBSITE)/node_modules: $(WEBSITE)/package.json
 
 # Build the static site and serve it, exactly as it will be deployed.
 # astro preview daemonises, so this hands the prompt back with the server up.
-# The /eskele/ path is the `base` in Website/astro.config.mjs.
 docs: docs-build
 	@npm --prefix $(WEBSITE) run preview -- --port $(DOCS_PORT) --open
-	@echo "serving http://localhost:$(DOCS_PORT)/eskele/ - stop it with: make docs-stop"
+	@echo "serving http://localhost:$(DOCS_PORT)/ - stop it with: make docs-stop"
 
 docs-stop:
 	@npm --prefix $(WEBSITE) run preview:stop 2>/dev/null || true

@@ -4,10 +4,9 @@ name: Website
 # touches it. A push that changes only the app leaves the site alone: it would deploy the same
 # bytes again.
 #
-# The address is https://hossain.al/eskele/. It comes from the user site: hossainalhaidari.github.io
-# carries the custom domain, and GitHub then serves every project site of this account under it at
-# /<repository>, which is what `base` in Website/astro.config.mjs says. There is deliberately no
-# CNAME file here — one would claim the apex for this repository instead of the user site.
+# The address is https://eskele.app/. The domain is this repository's own, set in its Pages
+# settings and claimed by Website/public/CNAME, which lands at the root of the deployed site. The
+# site therefore has no `base` in Website/astro.config.mjs.
 #
 # ci.yml is the other half of the split: it ignores Website/ and Markdown, this one builds nothing
 # but them.

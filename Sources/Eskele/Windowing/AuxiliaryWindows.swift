@@ -36,7 +36,7 @@ final class PreferencesWindowController {
 @MainActor
 enum AboutPanel {
     static let developer = "Hossain Alhaidari"
-    static let website = URL(string: "https://hossainalhaidari.github.io/eskele/")!
+    static let website = URL(string: "https://eskele.app")!
     static let sourceCode = URL(string: "https://github.com/hossainalhaidari/eskele")!
 
     static func show() {
