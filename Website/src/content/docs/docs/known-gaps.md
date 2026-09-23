@@ -73,12 +73,6 @@ those. See [Appearance](../appearance/#custom-icons).
 
 ## Not built yet
 
-**No copy of Eskele has updated itself yet.** There is one release, so there has been nothing to
-update *to*. What has been checked: a throwaway app, embedded and signed by the same scripts as
-Eskele, updated itself through a local appcast and refused a forged one; and the release the
-workflow published is notarised, with an appcast whose signature matches the key inside the app.
-The first real update is v0.1.1.
-
 **Releases are Apple silicon only, by choice.** `swift build` builds for the Mac it runs on, and
 GitHub's macOS runners are Apple silicon. The appcast says so, so an Intel Mac is never offered an
 update it cannot run.

@@ -1736,11 +1736,11 @@ signature intact, and refused the same update with a forged EdDSA signature. `pa
 end with the Developer ID: every piece carries the runtime flag and a timestamp, the packaged app
 loads Sparkle under library validation, and Apple accepted the DMG with an empty issue list across
 all 17 signed files; `spctl` accepts both the DMG and the app inside it as Notarized Developer ID.
-The workflow then published v0.1.0 unattended: tag on `main` to a notarised, stapled DMG and a
-signed appcast, whose signature verifies against the key in `Info.plist` and whose download
-Gatekeeper accepts as Notarized Developer ID. **Not verified:** Eskele updating itself, which needs
-a second release — v0.1.0 has nothing to update to, and a second Eskele could not be run beside the
-one in use.
+The workflow then published v0.1.0 and v0.1.1 unattended: tag on `main` to a notarised, stapled DMG
+and a signed appcast, whose signature verifies against the key in `Info.plist` and whose download
+Gatekeeper accepts as Notarized Developer ID. With both out, the owner installed 0.1.0 from its DMG
+and updated it to 0.1.1 from inside the app — the last step nothing here could exercise, since a
+second Eskele cannot run beside the one in use.
 
 ### 5.29 Polling while nobody is looking
 
@@ -1815,9 +1815,8 @@ S1, S2 and S3 are answered, S3 by dropping what it was testing. S4 needs a human
 | **M14** | Apps Menu | **Done.** Launcher panel with search, categorised All Apps, Favourites and Recents, on any edge (§5.15) |
 | **M15** | Multiple windows | **Done.** AX-backed counts, one dash per window capped at four, click-to-cycle, live window titles, and one button per window in full-width mode (§5.16) |
 
-M1–M10 are implemented and building clean with no warnings, and v0.1.0 is published. What remains
-is the one open spike — a human clicking things for S4 — and the first update installed by a real
-copy, which waits on v0.1.1 (§5.28).
+M1–M10 are implemented and building clean with no warnings, v0.1.1 is published, and a copy has
+updated itself to it. What remains is the one open spike — a human clicking things for S4.
 
 ---
 
