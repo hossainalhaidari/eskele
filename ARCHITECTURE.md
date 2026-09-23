@@ -1736,8 +1736,11 @@ signature intact, and refused the same update with a forged EdDSA signature. `pa
 end with the Developer ID: every piece carries the runtime flag and a timestamp, the packaged app
 loads Sparkle under library validation, and Apple accepted the DMG with an empty issue list across
 all 17 signed files; `spctl` accepts both the DMG and the app inside it as Notarized Developer ID.
-**Not verified:** the workflow itself and the real app updating — no release yet, and a second
-Eskele could not be run beside the one in use.
+The workflow then published v0.1.0 unattended: tag on `main` to a notarised, stapled DMG and a
+signed appcast, whose signature verifies against the key in `Info.plist` and whose download
+Gatekeeper accepts as Notarized Developer ID. **Not verified:** Eskele updating itself, which needs
+a second release — v0.1.0 has nothing to update to, and a second Eskele could not be run beside the
+one in use.
 
 ### 5.29 Polling while nobody is looking
 
@@ -1803,7 +1806,7 @@ S1, S2 and S3 are answered, S3 by dropping what it was testing. S4 needs a human
 | **M5** | Dock suppression | **Done.** DockPrefsKit, watchdog, full restore matrix, plus reserved-space mode (§5.6) |
 | **M6** | Trash + drag & drop | **Done.** TrashKit, pin/unpin/reorder, drag-off-to-remove, drop-to-open, drop-to-trash, persistence |
 | **M7** | Preferences + polish | **Done.** SwiftUI settings window (4 tabs), `SMAppService` login item, first-run onboarding, non-prompting permission status rows |
-| **M8** | Distribution | **Done bar the first release.** `Scripts/package.sh` signs with Hardened Runtime, builds and verifies a DMG, notarises and staples — run with the Developer ID, Apple accepted it with no issues; `.github/workflows/release.yml` runs it from a tag or by hand on `main` and publishes the release with its appcast, and has not yet run. Sparkle auto-update — see §5.28 |
+| **M8** | Distribution | **Done.** `Scripts/package.sh` signs with Hardened Runtime, builds and verifies a DMG, notarises and staples — run with the Developer ID, Apple accepted it with no issues; `.github/workflows/release.yml` runs it from a tag or by hand on `main` and published v0.1.0 that way. Sparkle auto-update — see §5.28 |
 | **M9** | Auto-hide & reveal | **Done.** Edge trigger window, slide animation, interaction guard, ⌃⌥D global hot key (§5.10) |
 | **M10** | Stacks & window management | **Done.** Lazy stack menus, AX window lists with graceful degradation (§5.11). The AX window *nudge* is dropped in favour of reserved-space mode |
 | **M11** | Full-screen behaviour | **Done, unverified.** Show / reveal-on-hover / hide per §5.13. The AX detection path could not be exercised here — granting Accessibility needs the user |
@@ -1812,9 +1815,9 @@ S1, S2 and S3 are answered, S3 by dropping what it was testing. S4 needs a human
 | **M14** | Apps Menu | **Done.** Launcher panel with search, categorised All Apps, Favourites and Recents, on any edge (§5.15) |
 | **M15** | Multiple windows | **Done.** AX-backed counts, one dash per window capped at four, click-to-cycle, live window titles, and one button per window in full-width mode (§5.16) |
 
-M1–M10 are implemented and building clean with no warnings. What remains before this is shippable:
-the first release, which waits on the release workflow's secrets and a public repository (§5.28,
-§9), and the one open spike — a human clicking things for S4.
+M1–M10 are implemented and building clean with no warnings, and v0.1.0 is published. What remains
+is the one open spike — a human clicking things for S4 — and the first update installed by a real
+copy, which waits on v0.1.1 (§5.28).
 
 ---
 
