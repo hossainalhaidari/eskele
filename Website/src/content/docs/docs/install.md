@@ -7,6 +7,18 @@ Eskele is a SwiftPM package that has to be assembled into a real application bun
 produces a bare executable, and the agent behaviour — no Dock tile, no menu of its own — needs a
 bundle with an `Info.plist`.
 
+## With Homebrew
+
+```bash
+brew install --cask hossainalhaidari/tap/eskele
+```
+
+That taps [hossainalhaidari/homebrew-tap](https://github.com/hossainalhaidari/homebrew-tap), trusts
+the Eskele cask in it — naming it in full is what Homebrew takes as your say-so — and installs the
+same signed, notarised DMG as the [releases page](https://github.com/hossainalhaidari/eskele/releases).
+The copy keeps itself up to date as below, so `brew upgrade` leaves it alone; `brew upgrade --greedy`
+moves it on anyway. `brew uninstall --zap --cask eskele` removes its settings along with it.
+
 ## Build and run
 
 ```bash
@@ -93,7 +105,9 @@ gh workflow run release.yml -f version=1.2.0
 ```
 
 It tests, builds, signs with Hardened Runtime, notarises and staples the DMG, writes the appcast that
-installed copies read, and publishes the GitHub release with both attached. The build number is the
+installed copies read, and publishes the GitHub release with both attached. Then it moves the cask in
+`homebrew-tap` to the new version and the published DMG's checksum; if only that part fails, *Re-run
+failed jobs* retries it alone. The build number is the
 commit count on `main` — Sparkle decides what is newer by that number, so it only ever goes up. It
 refuses a version that is not plain `x.y.z`, a tag on a commit that is not on `main`, a version no
 newer than the last release, and an `Info.plist` with no update key.
@@ -122,6 +136,19 @@ repository is public.
    | `NOTARY_API_KEY_ID` | That key's ID |
    | `NOTARY_API_ISSUER_ID` | The issuer ID shown above the list of keys |
    | `SPARKLE_PRIVATE_KEY` | The update key, exported as `make update-key` shows at the end |
+4. **The tap's deploy key.** A key pair that can push to `homebrew-tap` and nothing else:
+
+   ```bash
+   ssh-keygen -t ed25519 -N '' -C 'eskele release' -f tap-key
+   gh repo deploy-key add tap-key.pub --repo hossainalhaidari/homebrew-tap --allow-write --title 'eskele release'
+   gh api -X PUT repos/hossainalhaidari/eskele/environments/homebrew-tap
+   gh secret set HOMEBREW_TAP_DEPLOY_KEY --env homebrew-tap < tap-key
+   rm tap-key tap-key.pub
+   ```
+
+   Then give the new `homebrew-tap` environment the same *Deployment branches and tags* as
+   `release` — `main` and `v*`. It is an environment of its own so that required reviewers on
+   `release` do not make every release wait for a second approval.
 
 Secrets stay private when the repository is public: GitHub never shows one again once it is set, and
 masks them in the logs. Workflows run for pull requests from forks get no secrets at all. A ruleset

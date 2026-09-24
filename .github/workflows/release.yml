@@ -16,9 +16,12 @@ name: Release
 # GitHub release's description and the notes Eskele shows in its update window. A version with no
 # section there is refused before anything is built.
 #
+# Once the release is out, the cask in <owner>/homebrew-tap is moved to it, so that
+# `brew install --cask <owner>/tap/eskele` installs the new version.
+#
 # The Developer ID, the notary key and the update signing key are secrets of the `release`
-# environment, which only main and v* tags may use. The website's
-# Install page, "One-time setup", says how to set it up.
+# environment, and the tap's deploy key of the `homebrew-tap` one; only main and v* tags may use
+# either. The website's Install page, "One-time setup", says how to set them up.
 
 on:
   push:
@@ -47,6 +50,9 @@ jobs:
       contents: write
     # Notarisation is usually minutes but has taken an hour.
     timeout-minutes: 90
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -211,3 +217,59 @@ jobs:
         run: |
           [ -z "${RELEASE_KEYCHAIN:-}" ] || security delete-keychain "$RELEASE_KEYCHAIN" || true
           rm -f "$RUNNER_TEMP/notary.p8"
+
+  # A job of its own because the release is already public by now: if this fails, "Re-run failed
+  # jobs" retries just this, where re-running the release would be refused as a duplicate.
+  cask:
+    needs: release
+    runs-on: ubuntu-latest
+    # Its own environment, so the deploy key sits apart from the signing secrets and a release that
+    # waits for approval does not wait twice.
+    environment: homebrew-tap
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.release.outputs.version }}
+      TAG: ${{ needs.release.outputs.tag }}
+      TAP: git@github.com:${{ github.repository_owner }}/homebrew-tap.git
+      # github.com's host key, from https://api.github.com/meta, so the push cannot go anywhere else.
+      GITHUB_HOST_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+    steps:
+      - name: Point the cask at the release
+        env:
+          DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+          [ -n "$DEPLOY_KEY" ] || fail "HOMEBREW_TAP_DEPLOY_KEY is not set in the homebrew-tap environment."
+
+          # The checksum of the DMG as published, not as built: it is what brew will download.
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern "Eskele-$VERSION.dmg" --dir "$RUNNER_TEMP"
+          sha="$(sha256sum "$RUNNER_TEMP/Eskele-$VERSION.dmg" | cut -d ' ' -f 1)"
+
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/tap-key"
+          chmod 600 "$RUNNER_TEMP/tap-key"
+          printf 'github.com %s\n' "$GITHUB_HOST_KEY" > "$RUNNER_TEMP/known_hosts"
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/tap-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts"
+
+          git clone --depth 1 "$TAP" "$RUNNER_TEMP/tap"
+          cd "$RUNNER_TEMP/tap"
+          cask=Casks/eskele.rb
+          sed -i -E \
+            -e "s/^  version \"[^\"]*\"$/  version \"$VERSION\"/" \
+            -e "s/^  sha256 \"[^\"]*\"$/  sha256 \"$sha\"/" \
+            "$cask"
+          grep -qx "  version \"$VERSION\"" "$cask" && grep -qx "  sha256 \"$sha\"" "$cask" \
+            || fail "$cask has no version or sha256 line where they were expected."
+          git diff
+
+          # A re-run after a push that went through has nothing left to do.
+          if git diff --quiet; then
+            echo "$cask is already at $VERSION."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -qam "eskele $VERSION"
+          git push origin HEAD
+          rm -f "$RUNNER_TEMP/tap-key"

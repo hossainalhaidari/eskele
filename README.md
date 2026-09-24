@@ -21,6 +21,12 @@
 ## Install
 
 Download the latest DMG from the [releases page](https://github.com/hossainalhaidari/eskele/releases),
+or install it with Homebrew:
+
+```bash
+brew install --cask hossainalhaidari/tap/eskele
+```
+
 or build it yourself:
 
 ```bash
