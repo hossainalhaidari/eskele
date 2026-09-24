@@ -8,7 +8,11 @@ running application shows a single dash and one button.
 
 ## Indicators
 
-Applications with several windows show **one dash per window, up to four**.
+Applications with several windows show **one dash per window, up to four**. On the application
+you are using, the window you are on gets a long, bright dash and the others shrink to dim dots.
+The dashes run in the same order that clicking the icon steps through them, so each click moves the
+long dash one place along. When Eskele cannot tell which window has focus,
+for example because it has no title, all the dashes stay bright.
 
 Hovering a button names the window it is showing — the page title rather than the application's name
 again — or the application's name when nothing is open.

@@ -406,34 +406,43 @@ final class ItemView: NSView {
         guard usesIndicatorLane || multiple else { return }
 
         let dashes = WindowIndicator.dashCount(forWindows: item.windowCount)
+        // On the frontmost app the focused window's dash is expanded and bright, and its siblings
+        // shrink to dots at the background apps' level — so the long bright dash means "the window
+        // you are on" everywhere on the bar. A background app keeps its even row of dim dashes.
+        let highlighted = item.isFrontmost
+            ? WindowIndicator.highlightedDash(focusedWindow: item.focusedWindow, dashes: dashes)
+            : nil
         let layout = WindowIndicator.layout(
             dashes: dashes,
             iconSize: metrics.iconSize,
             weight: metrics.indicatorWeight,
-            isFrontmost: item.isFrontmost)
+            isFrontmost: item.isFrontmost,
+            focused: highlighted)
 
         let weight = metrics.indicatorWeight
         // A labelled bar has no indicator lane, so the dashes ride just inside the button's own
         // edge rather than the cell's — otherwise they would hang outside the slab.
         let lane = max(0, (metrics.outerInset - weight) / 2)
         let offset = usesIndicatorLane ? lane : lane + metrics.crossInset
-        NSColor.labelColor
-            .withAlphaComponent(item.isFrontmost ? 0.85 : 0.45)
-            .setFill()
 
-        // Laid out along the bar's long axis, centred on the cell.
+        // Laid out along the bar's long axis, centred on the cell. The group's total length does not
+        // depend on which dash is expanded, so cycling windows moves the long dash without the
+        // group shifting under it.
         var position = (edge.isVertical ? bounds.midY : bounds.midX) - layout.total / 2
-        for _ in 0..<dashes {
+        for index in 0..<dashes {
+            let bright = item.isFrontmost && (highlighted == nil || highlighted == index)
+            NSColor.labelColor.withAlphaComponent(bright ? 0.85 : 0.45).setFill()
+            let length = layout.length(ofDash: index)
             let rect: NSRect = switch edge {
             case .bottom:
-                NSRect(x: position, y: offset, width: layout.dash, height: weight)
+                NSRect(x: position, y: offset, width: length, height: weight)
             case .left:
-                NSRect(x: offset, y: position, width: weight, height: layout.dash)
+                NSRect(x: offset, y: position, width: weight, height: length)
             case .right:
-                NSRect(x: bounds.maxX - offset - weight, y: position, width: weight, height: layout.dash)
+                NSRect(x: bounds.maxX - offset - weight, y: position, width: weight, height: length)
             }
             NSBezierPath(roundedRect: rect, xRadius: weight / 2, yRadius: weight / 2).fill()
-            position += layout.dash + layout.gap
+            position += length + layout.gap
         }
     }
 

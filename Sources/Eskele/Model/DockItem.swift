@@ -34,6 +34,10 @@ struct DockItem: Identifiable, Equatable {
     var isHidden: Bool = false
     /// 0 means "unknown" as well as "none" — without Accessibility we cannot tell them apart.
     var windowCount: Int = 0
+    /// Which of the app's windows has focus, counted in the order its dashes are drawn — the title
+    /// order clicking the icon cycles through. Only ever set on the frontmost app, and nil whenever
+    /// the focused window cannot be told apart.
+    var focusedWindow: Int?
     var pid: pid_t?
     /// The process this cell stands for, when it is not the first copy of its app.
     ///

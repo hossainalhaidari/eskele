@@ -916,6 +916,17 @@ is left to the dashes; saying it again would cost the label the only line it has
   running must not read as having nothing open.
 - Labelled bars normally show running state as a button fill and draw no dashes — but a *count* is
   something a fill cannot express, so multi-window apps get dashes in both modes.
+- On the frontmost app the focused window's dash is bright and expanded to the length a
+  single-window frontmost app's dash has. Its siblings shrink to dots at the level a background
+  app's dashes use, so the long bright dash means "the window you are on" whether the app has one
+  window or four. Brightness alone was too quiet a difference: at three or four windows the dashes
+  are already short, and one short bright dash among dim ones is easy to miss, whereas the length
+  difference reads at a glance. The group's total length does not depend on which dash is
+  expanded, so it stays put while you cycle. The dashes follow `windowsByPID`'s title order, the same order `cycleOrder` steps through, so
+  a click moves the long dash one place along. When focus cannot be placed (an untitled or
+  duplicate-titled window, or one past the cap), every dash stays bright, as it did before. Lighting
+  the last dash would name a window it does not stand for, and dimming them all would make the
+  frontmost app look like a background one.
 
 **Clicking gains a step.** Not running → launch. Running, not frontmost → bring forward. Frontmost
 with one window → hide, as before. Frontmost with several → cycle to the next window, which is what

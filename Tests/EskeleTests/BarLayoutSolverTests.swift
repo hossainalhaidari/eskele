@@ -238,6 +238,58 @@ private func rows(_ ceilings: [CGFloat], rows count: Int) -> [Range<Int>] {
     }
 }
 
+/// The focused window's dash is the one lit, in the order the dashes are drawn.
+@Test func focusedWindowLightsItsOwnDash() {
+    #expect(WindowIndicator.highlightedDash(focusedWindow: 1, dashes: 3) == 1)
+    #expect(WindowIndicator.highlightedDash(focusedWindow: 0, dashes: 4) == 0)
+}
+
+/// Anything that cannot name one dash lights them all, so the frontmost app never goes dim.
+@Test func unplaceableFocusLightsEveryDash() {
+    #expect(WindowIndicator.highlightedDash(focusedWindow: nil, dashes: 3) == nil)
+    // Past the cap: the last dash would claim a window it does not stand for.
+    #expect(WindowIndicator.highlightedDash(focusedWindow: 5, dashes: 4) == nil)
+    // A lone dash is the whole app; there is nothing to single out.
+    #expect(WindowIndicator.highlightedDash(focusedWindow: 0, dashes: 1) == nil)
+}
+
+/// The focused window's dash is the one a single-window frontmost app would draw; the rest are dots.
+@Test func focusedDashExpandsAndTheRestAreDots() {
+    let layout = WindowIndicator.layout(
+        dashes: 3, iconSize: 40, weight: 3, isFrontmost: true, focused: 1)
+    #expect(layout.length(ofDash: 1) == 20)   // 0.5 x icon, as a lone frontmost dash
+    #expect(layout.length(ofDash: 0) == 3)    // a dot: as long as it is thick
+    #expect(layout.length(ofDash: 2) == 3)
+    #expect(layout.total == 20 + 2 * 3 + 2 * layout.gap)
+}
+
+/// Which dash is expanded must not change the group's length, or cycling would make it jump.
+@Test func expandingADashKeepsTheGroupInPlace() {
+    let totals = (0..<4).map {
+        WindowIndicator.layout(dashes: 4, iconSize: 40, weight: 3, isFrontmost: true, focused: $0).total
+    }
+    #expect(Set(totals).count == 1)
+}
+
+/// With four windows on the smallest bar the expanded dash shrinks to fit, but stays a dash.
+@Test func expandedDashFitsAtTheSmallestScale() {
+    for (icon, weight) in [(CGFloat(27), CGFloat(2)), (40, 3)] {
+        let layout = WindowIndicator.layout(
+            dashes: 4, iconSize: icon, weight: weight, isFrontmost: true, focused: 3)
+        #expect(layout.total <= icon * 0.85 + 0.5)
+        #expect(layout.length(ofDash: 3) >= weight * 2)
+    }
+}
+
+/// A focus that names no dash leaves the even row alone.
+@Test func unplaceableFocusKeepsEvenDashes() {
+    let plain = WindowIndicator.layout(dashes: 3, iconSize: 40, weight: 3, isFrontmost: true)
+    #expect(WindowIndicator.layout(
+        dashes: 3, iconSize: 40, weight: 3, isFrontmost: true, focused: 7) == plain)
+    #expect(WindowIndicator.layout(dashes: 1, iconSize: 40, weight: 3, isFrontmost: true, focused: 0)
+        == WindowIndicator.layout(dashes: 1, iconSize: 40, weight: 3, isFrontmost: true))
+}
+
 /// Every dash is the same size — an uneven group would read as meaning something.
 @Test func dashesStayLegibleAtTheSmallestScale() {
     let layout = WindowIndicator.layout(dashes: 4, iconSize: 27, weight: 2, isFrontmost: false)

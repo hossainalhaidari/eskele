@@ -146,27 +146,60 @@ enum WindowIndicator {
         max(1, min(maximumDashes, windows))
     }
 
+    /// The one dash to draw bright on the frontmost app, or nil to light them all.
+    ///
+    /// All of them is the fallback, and the look this had before: the group still has to read as
+    /// the frontmost app when the focused window is unknown — an untitled or duplicate-titled
+    /// window — or is past the cap, where lighting the last dash would name the wrong window.
+    static func highlightedDash(focusedWindow: Int?, dashes: Int) -> Int? {
+        guard dashes > 1, let focusedWindow, (0..<dashes).contains(focusedWindow) else { return nil }
+        return focusedWindow
+    }
+
     struct Layout: Equatable {
         var dash: CGFloat
         var gap: CGFloat
         var total: CGFloat
+        /// The focused window's dash, drawn `focusedDash` long while every other dash is a dot.
+        var focused: Int? = nil
+        var focusedDash: CGFloat = 0
+
+        func length(ofDash index: Int) -> CGFloat {
+            index == focused ? focusedDash : dash
+        }
     }
 
     /// A single dash keeps exactly the length it had before this feature existed, so the common case
     /// looks unchanged. Additional dashes shrink to fit rather than widening the group indefinitely.
+    ///
+    /// - Parameter focused: the dash to expand, from `highlightedDash`. The others shrink to dots
+    ///   and it takes the length a single-window frontmost app's dash has, so the long dash means
+    ///   "the window you are on" whether the app has one window or four.
     static func layout(
         dashes: Int,
         iconSize: CGFloat,
         weight: CGFloat,
-        isFrontmost: Bool
+        isFrontmost: Bool,
+        focused: Int? = nil
     ) -> Layout {
         let count = max(1, dashes)
         let gap = max(2, weight)
+        let ceiling = iconSize * 0.85
+
+        if let focused, count > 1, (0..<count).contains(focused) {
+            let others = CGFloat(count - 1) * (weight + gap)
+            // Round *down* for the same reason as below. The floor keeps it longer than a dot even
+            // on the smallest bar, where the fitted length would otherwise run into the dots' size.
+            let expanded = max(weight * 2, min((iconSize * 0.5).rounded(), (ceiling - others).rounded(.down)))
+            return Layout(
+                dash: weight, gap: gap, total: others + expanded,
+                focused: focused, focusedDash: expanded)
+        }
+
         let single = (iconSize * (isFrontmost ? 0.5 : 0.3)).rounded()
 
         var dash = single
         var total = CGFloat(count) * dash + CGFloat(count - 1) * gap
-        let ceiling = iconSize * 0.85
         if total > ceiling {
             // Round *down*: rounding up can push the recomputed total back past the ceiling.
             dash = max(3, ((ceiling - CGFloat(count - 1) * gap) / CGFloat(count)).rounded(.down))

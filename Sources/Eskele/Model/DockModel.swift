@@ -251,6 +251,9 @@ final class DockModel {
         item.displays = Set(windows.compactMap(\.display))
         // The focused window is the one the user would name if asked what the app is showing.
         item.windowTitle = (windows.first(where: \.isFocused) ?? windows.first)?.title
+        // `windows` is already in title order, which is the order a click cycles through, so the
+        // dash that lights up is the one the next click moves away from.
+        item.focusedWindow = item.isFrontmost ? windows.firstIndex(where: \.isFocused) : nil
     }
 
     private func trashItem() -> DockItem {
