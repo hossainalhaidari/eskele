@@ -79,11 +79,11 @@ the window's title, in text. Nothing else in the app changes, and no other featu
 
 Three details:
 
-- The capture is asked for only **after the hover delay has elapsed**, so sweeping along a full-width
-  bar never captures anything.
-- The text appears the moment the delay is up and the **thumbnail fills in behind it**, so the label
-  stays as quick as it was. A capture stands in for the live window for two seconds, which makes
-  re-hovering the same cell instant.
+- The capture is asked for only **once the pointer has rested on a cell**, so sweeping along a
+  full-width bar never captures anything.
+- The text appears the moment the pointer arrives and the **thumbnail fills in above it**, so the
+  label stays as quick as it was. A capture stands in for the live window for two seconds, which
+  makes re-hovering the same cell instant.
 - **Off-screen windows are captured too.** A minimised window, or one on another Space, is exactly the
   case where a picture tells you something the bar cannot.
 

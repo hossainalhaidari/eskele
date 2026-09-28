@@ -17,6 +17,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - On the application you are using, the **window you are on** gets a long, bright running dash and
   its other windows shrink to dots, so an application with three windows shows which of the three
   you are on. Applications in the background keep their even row of dashes.
+- The **hover label appears the moment the pointer reaches a cell**, as the system Dock's does. With
+  Reserve Screen Space on, the Dock parked under the bar used to name whichever of its own icons
+  was underneath first, so for a moment the label could read Finder over Visual Studio Code. The
+  window preview still waits until the pointer rests.
 
 ## [0.1.1] - 2026-09-23
 

@@ -715,7 +715,7 @@ final class BarContentView: NSView {
         guard announce else { return }
         NSAccessibility.post(element: view, notification: .focusedUIElementChanged)
         // The name, for anyone who can see the bar but not tell its icons apart: the same label the
-        // pointer would have brought up, on the same delay.
+        // pointer would have brought up.
         showLabel(for: view)
     }
 
@@ -1003,8 +1003,8 @@ extension BarContentView: ItemViewDelegate {
             return
         }
         calendar.hide()
-        // The closure is only called once the hover delay is up, so sweeping the bar captures
-        // nothing; see `HoverTooltip.schedule`.
+        // The closure is only called once the pointer has rested on the cell, so sweeping the bar
+        // captures nothing; see `HoverTooltip.schedule`.
         let item = view.item
         // The bar shows how far along; the label is the only place that can say how far along
         // *what*, and it is where somebody who has not worked out what the bar means finds out.

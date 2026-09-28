@@ -11,6 +11,13 @@ Each of these is here with its reason, so you can tell a decision from a limit b
 except for the menu bar. [Reserved-space mode](../system-dock/#reserve-screen-space) covers maximised
 windows; for full-screen the bar can only float over the window or get out of the way.
 
+**With Reserve Screen Space on, the Dock's own label can appear beside Eskele's.** The Dock parked
+under the bar is really there, and it follows the pointer through any window above it, so hovering a
+cell can bring up the Dock's label for whichever of *its* icons lies underneath — Finder over Visual
+Studio Code, say. Eskele's label comes up just as fast and covers it where the two overlap; where they
+do not, both show. Nothing lets another app switch the Dock's labels off. See
+[Reserve Screen Space](../system-dock/#reserve-screen-space).
+
 **Full-screen detection needs Accessibility.** There is no reliable permission-free way to tell a
 full-screen space from a window merely sized to fill the screen. Without the permission the setting
 behaves as *Always Show*.

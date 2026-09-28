@@ -20,9 +20,14 @@ final class HoverTooltip {
     /// is only shown if the tooltip it belongs to is still the one on screen.
     private var generation = 0
 
-    /// Long enough that sweeping along a full-width bar does not strobe, short enough to feel like
-    /// an answer to hovering rather than an accident.
-    static let delay: TimeInterval = 0.4
+    /// How long the pointer has to rest before a preview is asked for. Long enough that sweeping
+    /// along a full-width bar captures nothing, short enough to feel like an answer to hovering.
+    ///
+    /// The text does not wait for it. With Reserve Screen Space on, the system Dock is parked
+    /// visible under the bar, and it tracks the pointer through any window above it: its own label
+    /// for whichever of its icons happens to lie underneath comes up instantly. A label of ours that
+    /// took longer was upstaged by the Dock naming the wrong app.
+    static let previewDelay: TimeInterval = 0.4
     private static let padding = NSSize(width: 9, height: 5)
     private static let gap: CGFloat = 6
     /// Space between the thumbnail and the title under it.
@@ -68,12 +73,11 @@ final class HoverTooltip {
         panel.contentView = effect
     }
 
-    /// Shows `text` beside `rect` (in screen coordinates) after the hover delay.
+    /// Shows `text` beside `rect` (in screen coordinates) at once, as the system Dock does.
     ///
-    /// - Parameter preview: asked for a picture only once the delay has elapsed, so sweeping along a
-    ///   full-width bar never captures anything. The text appears the moment the delay is up and the
-    ///   thumbnail fills in behind it, which is what keeps the label as quick as it was before
-    ///   previews existed.
+    /// - Parameter preview: asked for a picture only once `previewDelay` has elapsed, so sweeping
+    ///   along a full-width bar never captures anything. The thumbnail fills in above the text,
+    ///   which is already on screen.
     func schedule(
         _ text: String,
         beside rect: NSRect,
@@ -82,12 +86,15 @@ final class HoverTooltip {
         preview: (() async -> NSImage?)? = nil
     ) {
         cancel()
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty else {
+            panel.orderOut(nil)
+            return
+        }
+        show(text, image: nil, beside: rect, edge: edge, on: screen)
+        guard let preview else { return }
         let work = DispatchWorkItem { [weak self] in
             MainActor.assumeIsolated {
                 guard let self else { return }
-                self.show(text, image: nil, beside: rect, edge: edge, on: screen)
-                guard let preview else { return }
                 let token = self.generation
                 Task { [weak self] in
                     let image = await preview()
@@ -97,7 +104,7 @@ final class HoverTooltip {
             }
         }
         pending = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + HoverTooltip.delay, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + HoverTooltip.previewDelay, execute: work)
     }
 
     func cancel() {

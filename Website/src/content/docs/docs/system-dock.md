@@ -15,9 +15,11 @@ The bar sits on top of it. The effect is that maximised windows stop short of th
 running underneath it.
 
 The Dock is covered rather than hidden because only a Dock that is showing holds a reservation every
-app respects: a hidden one gives its space back the next time an app launches or quits. Two things
-follow from it being really there. A translucent bar can let its icons show through faintly. And the
-option does nothing while the bar auto-hides, since a bar that slides away would uncover it.
+app respects: a hidden one gives its space back the next time an app launches or quits. Three things
+follow from it being really there. A translucent bar can let its icons show through faintly. The
+Dock still follows the pointer, so its own label for the icon under a cell can appear next to
+Eskele's — see [Known gaps](../known-gaps/). And the option does nothing while the bar auto-hides,
+since a bar that slides away would uncover it.
 
 It **does not work inside a native full-screen space** — macOS reserves nothing there except for the
 menu bar. Reserved-space mode covers maximised windows; for full-screen, the bar can only float over
