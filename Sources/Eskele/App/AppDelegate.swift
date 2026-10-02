@@ -488,6 +488,15 @@ extension AppDelegate: BarContentViewDelegate {
             options.addItem(action(
                 String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
                 item, #selector(revealInFinder(_:))))
+            if item.isRunning {
+                let forceRelaunch = action(
+                    ClickAction.forceRelaunch.title(for: item), item, #selector(forceRelaunchApp(_:)))
+                addItem(
+                    action(
+                        String(localized: "Relaunch", comment: "Menu item: quit this app and open it again"),
+                        item, #selector(relaunchApp(_:))),
+                    forcedBy: forceRelaunch, for: item, to: options)
+            }
             options.addItem(.separator())
             options.addItem(addSeparatorItem(before: item))
             let optionsItem = NSMenuItem(
@@ -499,14 +508,26 @@ extension AppDelegate: BarContentViewDelegate {
             if item.isRunning {
                 addWindowSection(to: menu, for: item)
                 menu.addItem(.separator())
-                menu.addItem(action(
-                    item.isHidden
-                        ? String(localized: "Show", comment: "Menu item: unhide this app's windows")
-                        : String(localized: "Hide", comment: "Menu item: hide this app's windows"),
-                    item, #selector(toggleHide(_:))))
-                menu.addItem(action(
-                    String(localized: "Quit", comment: "Menu item: quit this app"),
-                    item, #selector(quitApp(_:))))
+                addItem(
+                    action(
+                        item.isHidden
+                            ? String(localized: "Show", comment: "Menu item: unhide this app's windows")
+                            : String(localized: "Hide", comment: "Menu item: hide this app's windows"),
+                        item, #selector(toggleHide(_:))),
+                    alternate: action(
+                        String(
+                            localized: "Hide Others",
+                            comment: "Menu item: bring this app forward and hide every other one"),
+                        item, #selector(showOnlyApp(_:))),
+                    to: menu)
+                addItem(
+                    action(
+                        String(localized: "Quit", comment: "Menu item: quit this app"),
+                        item, #selector(quitApp(_:))),
+                    forcedBy: action(
+                        String(localized: "Force Quit", comment: "Menu item: kill this app without asking it"),
+                        item, #selector(forceQuitApp(_:))),
+                    for: item, to: menu)
             }
 
         case .window(_, let window):
@@ -526,9 +547,15 @@ extension AppDelegate: BarContentViewDelegate {
             menu.addItem(action(
                 String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
                 item, #selector(revealInFinder(_:))))
-            menu.addItem(action(
-                String(localized: "Quit \(appName(for: item))", comment: "Menu item: quit the named app"),
-                item, #selector(quitApp(_:))))
+            let name = appName(for: item)
+            addItem(
+                action(
+                    String(localized: "Quit \(name)", comment: "Menu item: quit the named app"),
+                    item, #selector(quitApp(_:))),
+                forcedBy: action(
+                    String(localized: "Force Quit \(name)", comment: "Menu item: kill the named app without asking it"),
+                    item, #selector(forceQuitApp(_:))),
+                for: item, to: menu)
 
         case .folder(let url):
             let stack = NSMenuItem(
@@ -798,6 +825,29 @@ extension AppDelegate: BarContentViewDelegate {
         return field.stringValue
     }
 
+    /// `primary`, with `alternate` in its place while ⌥ is held — the system Dock's way of keeping
+    /// the stronger form of an action one key away without making the menu any longer.
+    private func addItem(_ primary: NSMenuItem, alternate: NSMenuItem, to menu: NSMenu) {
+        menu.addItem(primary)
+        alternate.keyEquivalentModifierMask = .option
+        alternate.isAlternate = true
+        menu.addItem(alternate)
+    }
+
+    /// A polite action with its forced form behind ⌥ — or, for an app that has stopped answering,
+    /// the forced form alone. The polite one is a request such an app never hears, and the moment
+    /// you are looking for the forced one is the moment you are least likely to remember the key
+    /// that shows it. The system Dock swaps Force Quit in for the same reason.
+    private func addItem(
+        _ polite: NSMenuItem, forcedBy forced: NSMenuItem, for item: DockItem, to menu: NSMenu
+    ) {
+        if item.isUnresponsive {
+            menu.addItem(forced)
+        } else {
+            addItem(polite, alternate: forced, to: menu)
+        }
+    }
+
     private func action(
         _ title: String,
         _ item: DockItem,
@@ -911,6 +961,26 @@ extension AppDelegate: BarContentViewDelegate {
     @objc private func quitApp(_ sender: NSMenuItem) {
         guard let item = item(from: sender) else { return }
         model.quit(item)
+    }
+
+    @objc private func forceQuitApp(_ sender: NSMenuItem) {
+        guard let item = item(from: sender) else { return }
+        model.forceQuit(item)
+    }
+
+    @objc private func showOnlyApp(_ sender: NSMenuItem) {
+        guard let item = item(from: sender) else { return }
+        model.showOnly(item)
+    }
+
+    @objc private func relaunchApp(_ sender: NSMenuItem) {
+        guard let item = item(from: sender) else { return }
+        model.relaunch(item)
+    }
+
+    @objc private func forceRelaunchApp(_ sender: NSMenuItem) {
+        guard let item = item(from: sender) else { return }
+        model.forceRelaunch(item)
     }
 
     @objc private func selectAppsMenuSource(_ sender: NSMenuItem) {

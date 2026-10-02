@@ -65,8 +65,8 @@ enum ClickAction: Equatable {
     /// What the modifier-clicks do on `item`, in the order the gestures are listed.
     ///
     /// For VoiceOver, which presses a cell but cannot hold a modifier while it does: these become
-    /// the cell's actions, and two of them — Show Only This and the force relaunch — are on no menu,
-    /// so without this a VoiceOver user could not reach them at all. Derived from `resolve` rather
+    /// the cell's actions, and two of them — Show Only This and the force relaunch — are on the
+    /// context menu only as ⌥-alternates, which a VoiceOver user has no reason to go looking for. Derived from `resolve` rather
     /// than listed, so the two cannot drift apart.
     static func alternatives(for item: DockItem) -> [ClickAction] {
         let gestures: [NSEvent.ModifierFlags] = [

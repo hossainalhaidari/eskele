@@ -480,6 +480,14 @@
    AppCategory.swift:68 */
 "Food & Drink" = "Food & Drink";
 
+/* Menu item: kill this app without asking it
+   AppDelegate.swift:528 */
+"Force Quit" = "Force Quit";
+
+/* Menu item: kill the named app without asking it
+   AppDelegate.swift:556 */
+"Force Quit %@" = "Force Quit %@";
+
 /* Action: kill the app and start it again
    ClickAction.swift:94 */
 "Force Quit and Relaunch" = "Force Quit and Relaunch";
@@ -544,6 +552,10 @@
 /* Menu item: remove Eskele's own icon from the system menu bar
    StatusItemController.swift:71 */
 "Hide Menu Bar Icon" = "Hide Menu Bar Icon";
+
+/* Menu item: bring this app forward and hide every other one
+   AppDelegate.swift:519 */
+"Hide Others" = "Hide Others";
 
 /* PreferencesView.swift:506 */
 "Hide after" = "Hide after";
@@ -899,6 +911,10 @@
 /* App category
    AppCategory.swift:78 */
 "Reference" = "Reference";
+
+/* Menu item: quit this app and open it again
+   AppDelegate.swift:496 */
+"Relaunch" = "Relaunch";
 
 /* Menu item: delete a separator from the bar
    AppDelegate.swift:542 */

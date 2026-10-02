@@ -17,6 +17,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Mark only apps with open windows**, in the Contents settings, leaves the running indicator off
   applications that are hidden or have closed every window — Finder, or Mail left running in the
   background — so the marks on the bar are the applications you actually have open. Off by default.
+- **Force Quit** in an application's context menu: hold ⌥ while the menu is open and Quit becomes
+  Force Quit, as in the system Dock. For an application that has stopped responding, Force Quit
+  takes Quit's place without the key. A window's menu does the same with Quit and Force Quit.
+- **Hide Others**, behind ⌥ on Hide, brings the application forward and hides every other one.
+- **Relaunch**, under Options, quits an application and opens it again — handy after an update or a
+  setting it only reads at launch. It asks the application to quit, so unsaved work still gets its
+  sheet. Hold ⌥ for Force Quit and Relaunch.
 
 ## [0.1.2] - 2026-09-28
 

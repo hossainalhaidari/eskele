@@ -693,6 +693,12 @@ final class DockModel {
         runningApp(for: item)?.terminate()
     }
 
+    /// Kills the app without asking it. For one that has stopped answering, which is the case
+    /// `quit` cannot help with: it asks, and an app that is not pumping its event loop never hears.
+    func forceQuit(_ item: DockItem) {
+        runningApp(for: item)?.forceTerminate()
+    }
+
     func hide(_ item: DockItem) {
         guard let app = runningApp(for: item) else { return }
         if app.isHidden { app.unhide() } else { app.hide() }
@@ -738,27 +744,46 @@ final class DockModel {
               let url = ApplicationURL.launchable(for: app) else { return }
         let pid = app.processIdentifier
         app.forceTerminate()
-        relaunch(pid: pid, url: url)
+        relaunch(pid: pid, url: url, attempts: DockModel.forcedRelaunchAttempts)
+    }
+
+    /// Quits the app and starts it again.
+    ///
+    /// The polite counterpart to `forceRelaunch`, for an app that works but wants a fresh start —
+    /// after an update, or a setting it only reads at launch. It is asked, so it can save and can
+    /// object; and since a save sheet is answered at a person's pace rather than a process's, the
+    /// wait for it to go is much longer. Cancelling the quit leaves it running, and once the wait
+    /// runs out nothing is reopened.
+    func relaunch(_ item: DockItem) {
+        guard let app = runningApp(for: item),
+              let url = ApplicationURL.launchable(for: app) else { return }
+        let pid = app.processIdentifier
+        app.terminate()
+        relaunch(pid: pid, url: url, attempts: DockModel.politeRelaunchAttempts)
     }
 
     /// Reopens once the old process is actually gone. Opening while it is still dying just hands
     /// back the instance that is on its way out.
-    private func relaunch(pid: pid_t, url: URL, attempt: Int = 0) {
+    private func relaunch(pid: pid_t, url: URL, attempts: Int, attempt: Int = 0) {
         if NSRunningApplication(processIdentifier: pid)?.isTerminated ?? true {
             open(url)
             return
         }
-        // A process that has been force-killed and is still here after this long is not going to
-        // leave because we waited longer; relaunching over it would only produce a second copy.
-        guard attempt < DockModel.relaunchAttempts else { return }
+        // A process still here after this long is not going to leave because we waited longer —
+        // force-killed and stuck, or asked politely and declined; relaunching over it would only
+        // produce a second copy.
+        guard attempt < attempts else { return }
         Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(100))
-            self?.relaunch(pid: pid, url: url, attempt: attempt + 1)
+            self?.relaunch(pid: pid, url: url, attempts: attempts, attempt: attempt + 1)
         }
     }
 
     /// Four seconds, in 100ms steps.
-    private static let relaunchAttempts = 40
+    private static let forcedRelaunchAttempts = 40
+    /// Thirty seconds, in 100ms steps: long enough to answer a save sheet, short enough that an app
+    /// whose quit was cancelled is not reopened by surprise when it is quit by hand much later.
+    private static let politeRelaunchAttempts = 300
 
     /// Closes one window, leaving the rest of its app open.
     func close(_ item: DockItem) {
