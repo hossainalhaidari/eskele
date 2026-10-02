@@ -319,6 +319,10 @@
    SystemCatalog.swift:142 */
 "Desktop" = "Desktop";
 
+/* Why the full-screen behaviour needs a permission that isn't granted
+   PreferencesView.swift:612 */
+"Detecting full screen needs Accessibility." = "Detecting full screen needs Accessibility.";
+
 /* About window. The argument is the developer's name
    AuxiliaryWindows.swift:91 */
 "Developed by %@" = "Developed by %@";
@@ -639,6 +643,10 @@
    AppDelegate.swift:629 */
 "Listing an app's windows needs Accessibility access." = "Listing an app's windows needs Accessibility access.";
 
+/* Why showing menu-bar apps with a window needs a permission that isn't granted
+   PreferencesView.swift:266 */
+"Listing their windows needs Accessibility." = "Listing their windows needs Accessibility.";
+
 /* Power action, without the ellipsis, for search
    PowerAction.swift:30 */
 "Log Out" = "Log Out";
@@ -708,6 +716,10 @@
 /* App category
    AppCategory.swift:74 */
 "Navigation" = "Navigation";
+
+/* Why highlighting apps that need attention needs a permission that isn't granted
+   PreferencesView.swift:355 */
+"Needs Accessibility." = "Needs Accessibility.";
 
 /* Footer under the display mode picker, without Accessibility
    PreferencesView.swift:672 */
@@ -1115,6 +1127,10 @@
 /* Trade-off of the right-Command shortcut choice
    Settings.swift:110 */
 "Tapped on its own, like the Windows key. Needs Accessibility." = "Tapped on its own, like the Windows key. Needs Accessibility.";
+
+/* Why marking only apps with open windows needs a permission that isn't granted
+   PreferencesView.swift:277 */
+"Telling which apps have no windows needs Accessibility." = "Telling which apps have no windows needs Accessibility.";
 
 /* Footer under the clock controls, digital style
    PreferencesView.swift:370 */

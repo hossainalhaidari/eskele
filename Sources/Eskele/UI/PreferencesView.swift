@@ -262,7 +262,10 @@ struct ContentsPane: View {
                         ? "A menu-bar app gets a cell only while a window of its own is open."
                         : "Only applies when running apps that aren't pinned are shown.")
                 if settings.tracksAccessoryApps, accessibility != .granted {
-                    PermissionPrompt(message: "Listing their windows needs Accessibility.") {
+                    PermissionPrompt(message: String(
+                        localized: "Listing their windows needs Accessibility.",
+                        comment: "Why showing menu-bar apps with a window needs a permission that isn't granted")
+                    ) {
                         actions?.requestAccessibility()
                         accessibility = PermissionsService.accessibilityStatus
                     }
@@ -270,7 +273,10 @@ struct ContentsPane: View {
                 Toggle("Mark only apps with open windows", isOn: $store.settings.onlyMarkAppsWithWindows)
                     .help("Apps that are hidden or have closed every window show no running indicator.")
                 if settings.onlyMarkAppsWithWindows, accessibility != .granted {
-                    PermissionPrompt(message: "Telling which apps have no windows needs Accessibility.") {
+                    PermissionPrompt(message: String(
+                        localized: "Telling which apps have no windows needs Accessibility.",
+                        comment: "Why marking only apps with open windows needs a permission that isn't granted")
+                    ) {
                         actions?.requestAccessibility()
                         accessibility = PermissionsService.accessibilityStatus
                     }
@@ -345,7 +351,10 @@ struct ContentsPane: View {
             Section {
                 Toggle("Highlight apps that need attention", isOn: $store.settings.highlightAttention)
                 if accessibility != .granted {
-                    PermissionPrompt(message: "Needs Accessibility.") {
+                    PermissionPrompt(message: String(
+                        localized: "Needs Accessibility.",
+                        comment: "Why highlighting apps that need attention needs a permission that isn't granted")
+                    ) {
                         actions?.requestAccessibility()
                         accessibility = PermissionsService.accessibilityStatus
                     }
@@ -599,7 +608,10 @@ struct BehaviourPane: View {
                 .disabled(accessibility != .granted)
 
                 if accessibility != .granted {
-                    PermissionPrompt(message: "Detecting full screen needs Accessibility.") {
+                    PermissionPrompt(message: String(
+                        localized: "Detecting full screen needs Accessibility.",
+                        comment: "Why the full-screen behaviour needs a permission that isn't granted")
+                    ) {
                         actions?.requestAccessibility()
                         accessibility = PermissionsService.accessibilityStatus
                     }
