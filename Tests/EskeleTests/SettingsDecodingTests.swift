@@ -42,6 +42,14 @@ private func decodeSettings(_ json: String) -> Settings? {
     #expect(asked.slotHotKeysEnabled)
 }
 
+/// Unmarking windowless apps changes how an established bar looks, so a file written before the
+/// setting existed has to keep every running app marked.
+@Test func everyRunningAppStaysMarkedUntilAskedOtherwise() throws {
+    #expect(Settings().onlyMarkAppsWithWindows == false)
+    #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).onlyMarkAppsWithWindows == false)
+    #expect(try #require(decodeSettings(#"{"onlyMarkAppsWithWindows": true}"#)).onlyMarkAppsWithWindows)
+}
+
 /// A settings file written before rows existed must decode as the one-row bar it was.
 @Test func rowsDefaultToOneAndClampWhateverTheFileSays() throws {
     #expect(try #require(decodeSettings(#"{"edge": "left"}"#)).rowCount == 1)

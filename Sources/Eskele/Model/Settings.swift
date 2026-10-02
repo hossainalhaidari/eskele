@@ -453,6 +453,13 @@ struct Settings: Codable, Equatable, Sendable {
     /// and it is the kind of thing a user should opt into rather than discover. See
     /// `AccessoryAppsService`.
     var showAccessoryApps: Bool = false
+    /// Leave the running indicator off apps that are running with nothing open — hidden, or with
+    /// every window closed. Finder and Mail are the usual cases: they never really quit, so without
+    /// this they are marked as running all day.
+    ///
+    /// Off by default: it changes what an established bar looks like, and it can only see windows on
+    /// the current Space, so an app whose windows are all on another desktop goes unmarked too.
+    var onlyMarkAppsWithWindows: Bool = false
     var showTrash: Bool = true
     /// A clock at the trailing end of the bar.
     ///
@@ -585,6 +592,7 @@ struct Settings: Codable, Equatable, Sendable {
         showStatusItem = c.lenient(.showStatusItem, d.showStatusItem)
         showRunningUnpinned = c.lenient(.showRunningUnpinned, d.showRunningUnpinned)
         showAccessoryApps = c.lenient(.showAccessoryApps, d.showAccessoryApps)
+        onlyMarkAppsWithWindows = c.lenient(.onlyMarkAppsWithWindows, d.onlyMarkAppsWithWindows)
         showTrash = c.lenient(.showTrash, d.showTrash)
         showClock = c.lenient(.showClock, d.showClock)
         clockStyle = c.lenient(.clockStyle, d.clockStyle)

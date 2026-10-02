@@ -36,6 +36,8 @@ final class DockModel {
     private var frontmostPID: pid_t?
     /// Likewise: this is derived work, and `decorate` runs for every cell on the bar.
     private var launchingPIDs: Set<pid_t> = []
+    /// Likewise, and only asked while `Settings.onlyMarkAppsWithWindows` has a use for it.
+    private var windowsKnown = false
 
     /// Where the user has dragged running apps that have no stored slot, by bundle ID.
     ///
@@ -117,6 +119,7 @@ final class DockModel {
     func rebuild() {
         frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
         launchingPIDs = running.launchingPIDs
+        windowsKnown = settings.onlyMarkAppsWithWindows && hasWindowInformation?() == true
         var resolved: [(PersistedItem, DockItem)] = []
         var dropped = false
 
@@ -245,6 +248,12 @@ final class DockModel {
         let elsewhere = unreachableCount(pid: pid, windows: windows)
         item.windowCount = windows.count + elsewhere
         item.isFullScreen = elsewhere > 0 || windows.contains(where: \.isFullScreen)
+        item.isUnmarked = settings.onlyMarkAppsWithWindows && DockItem.hasNothingOpen(
+            isHidden: item.isHidden,
+            isFrontmost: item.isFrontmost,
+            isLaunching: item.isLaunching,
+            windows: item.windowCount,
+            windowsKnown: windowsKnown)
         item.needsAttention = settings.highlightAttention && attentionPIDs.contains(pid)
         // Empty unless the displays are being tracked at all, which is what makes every other mode
         // — and this one without Accessibility — fall through the filter unchanged.
@@ -297,7 +306,7 @@ final class DockModel {
         guard !windows.isEmpty else { return [item] }
 
         return windows.map { window in
-            DockItem(
+            var button = DockItem(
                 kind: .window(ref, window),
                 isPinned: false,
                 isRunning: true,
@@ -312,6 +321,10 @@ final class DockModel {
                 needsAttention: item.needsAttention,
                 isFullScreen: window.isFullScreen,
                 displays: window.display.map { [$0] } ?? [])
+            // A window button only exists for a window that is open, so this is only ever the
+            // hidden app — which unmarks every one of its buttons, as it unmarks its icon.
+            button.isUnmarked = item.isUnmarked
+            return button
         }
     }
 

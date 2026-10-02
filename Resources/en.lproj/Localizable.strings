@@ -171,6 +171,9 @@
 /* PreferencesView.swift:488 */
 "Apps Menu" = "Apps Menu";
 
+/* PreferencesView.swift:271 */
+"Apps that are hidden or have closed every window show no running indicator." = "Apps that are hidden or have closed every window show no running indicator.";
+
 /* Explains what the Recent Apps source lists
    Settings.swift:55 */
 "Apps you have used most recently." = "Apps you have used most recently.";
@@ -457,6 +460,10 @@
    AppCategory.swift:67 */
 "Finance" = "Finance";
 
+/* Footer under the toggle that leaves apps with no open windows unmarked
+   PreferencesView.swift:447 */
+"Finder, Mail and other apps that keep running after their last window closes lose their running indicator until they open one again, and so does a hidden app. The app you are using is always marked. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere goes unmarked until you switch to it." = "Finder, Mail and other apps that keep running after their last window closes lose their running indicator until they open one again, and so does a hidden app. The app you are using is always marked. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere goes unmarked until you switch to it.";
+
 /* Bar length: only as long as its contents
    Settings.swift:26 */
 "Fit to Icons" = "Fit to Icons";
@@ -650,6 +657,9 @@
 /* Which displays get a bar
    Settings.swift:239 */
 "Main Display Only" = "Main Display Only";
+
+/* PreferencesView.swift:270 */
+"Mark only apps with open windows" = "Mark only apps with open windows";
 
 /* Bar follows the system light/dark setting
    Settings.swift:254 */

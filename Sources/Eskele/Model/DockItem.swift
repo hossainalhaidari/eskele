@@ -82,6 +82,8 @@ struct DockItem: Identifiable, Equatable {
     /// Space we cannot reach. Showing it everywhere is the mirror behaviour; showing it nowhere
     /// would lose an app the user can plainly see.
     var displays: Set<CGDirectDisplayID> = []
+    /// Running, but drawn without the running indicator — see `Settings.onlyMarkAppsWithWindows`.
+    var isUnmarked: Bool = false
 
     var id: String {
         switch kind {
@@ -232,5 +234,22 @@ struct DockItem: Identifiable, Equatable {
         case .trash: nil
         case .appsMenu, .clock: nil
         }
+    }
+}
+
+extension DockItem {
+    /// Whether a running app has nothing open, for `Settings.onlyMarkAppsWithWindows`.
+    ///
+    /// Hidden counts as nothing open: its windows are out of sight until it is brought back. The
+    /// app in front is always marked, because it owns the menu bar whether or not it has a window,
+    /// and one that is still starting has not had the chance to open one yet.
+    ///
+    /// - Parameter windowsKnown: whether `windows` means anything. Without Accessibility every app
+    ///   reports none, and "unknown" must not read as "closed" — so then only hiding counts.
+    static func hasNothingOpen(
+        isHidden: Bool, isFrontmost: Bool, isLaunching: Bool, windows: Int, windowsKnown: Bool
+    ) -> Bool {
+        guard !isFrontmost, !isLaunching else { return false }
+        return isHidden || (windowsKnown && windows == 0)
     }
 }

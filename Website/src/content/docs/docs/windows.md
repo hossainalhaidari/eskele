@@ -14,6 +14,12 @@ The dashes run in the same order that clicking the icon steps through them, so e
 long dash one place along. When Eskele cannot tell which window has focus,
 for example because it has no title, all the dashes stay bright.
 
+Finder, Mail and other applications keep running after their last window closes, so by default they
+stay marked all day. Turn on *Mark only apps with open windows* in the *Contents* settings to leave
+the indicator off any application that is hidden or has no windows open. The application you are
+using is always marked. Windows on another desktop cannot be seen from this one, so an application
+whose windows are all elsewhere goes unmarked until you switch to it.
+
 Hovering a button names the window it is showing — the page title rather than the application's name
 again — or the application's name when nothing is open.
 

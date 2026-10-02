@@ -12,6 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Mark only apps with open windows**, in the Contents settings, leaves the running indicator off
+  applications that are hidden or have closed every window — Finder, or Mail left running in the
+  background — so the marks on the bar are the applications you actually have open. Off by default.
+
 ## [0.1.2] - 2026-09-28
 
 ### Changed

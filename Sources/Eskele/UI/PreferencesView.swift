@@ -267,6 +267,14 @@ struct ContentsPane: View {
                         accessibility = PermissionsService.accessibilityStatus
                     }
                 }
+                Toggle("Mark only apps with open windows", isOn: $store.settings.onlyMarkAppsWithWindows)
+                    .help("Apps that are hidden or have closed every window show no running indicator.")
+                if settings.onlyMarkAppsWithWindows, accessibility != .granted {
+                    PermissionPrompt(message: "Telling which apps have no windows needs Accessibility.") {
+                        actions?.requestAccessibility()
+                        accessibility = PermissionsService.accessibilityStatus
+                    }
+                }
                 Toggle("Show the Trash", isOn: $store.settings.showTrash)
                 Toggle("Keep pinned apps in their own group", isOn: $store.settings.separatePinGroup)
                     .disabled(!settings.drawsLabels)
@@ -276,7 +284,10 @@ struct ContentsPane: View {
             } header: {
                 Text("Items")
             } footer: {
-                FooterText(settings.showAccessoryApps ? accessoryNote : nil, pinGroupNote)
+                FooterText(
+                    settings.showAccessoryApps ? accessoryNote : nil,
+                    settings.onlyMarkAppsWithWindows ? unmarkedNote : nil,
+                    pinGroupNote)
             }
 
             Section {
@@ -431,6 +442,15 @@ struct ContentsPane: View {
             and that player simply shows no bar.
             """,
         comment: "Footer under the media progress toggle")
+
+    private let unmarkedNote = String(
+        localized: """
+            Finder, Mail and other apps that keep running after their last window closes lose \
+            their running indicator until they open one again, and so does a hidden app. The app \
+            you are using is always marked. Windows on another desktop cannot be seen from this \
+            one, so an app whose windows are all elsewhere goes unmarked until you switch to it.
+            """,
+        comment: "Footer under the toggle that leaves apps with no open windows unmarked")
 
     private let attentionNote = String(
         localized: """

@@ -401,7 +401,7 @@ final class ItemView: NSView {
             drawProgressBar(progress)
             return
         }
-        guard item.isRunning else { return }
+        guard item.isRunning, !item.isUnmarked else { return }
         let multiple = item.windowCount > 1
         guard usesIndicatorLane || multiple else { return }
 
@@ -522,7 +522,7 @@ final class ItemView: NSView {
     private func drawBackground() {
         var alpha = 0.0
         // Without the indicator lane, the fill *is* the running indicator — the taskbar idiom.
-        if item.isRunning && !usesIndicatorLane {
+        if item.isRunning && !item.isUnmarked && !usesIndicatorLane {
             alpha = item.isFrontmost ? 0.16 : 0.07
         }
         if isHovered || hasKeyboardFocus { alpha += 0.10 }
