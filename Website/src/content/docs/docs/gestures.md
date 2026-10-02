@@ -116,7 +116,8 @@ has focus Eskele is the active app, as it is while the Apps Menu is open.
 **VoiceOver reads the bar as a list and each item as a button** — its name, then what the bar draws
 about it: "Safari, running, active, 3 windows, badge 2". A folder and the Apps Menu are menu buttons.
 VoiceOver's press and context-menu commands work on every item, and its actions for an item include
-every modifier-click, among them Show Only This and the force relaunch, which are on no menu.
+every modifier-click, among them Show Only This and the force relaunch, which the context menu
+offers only while <kbd>⌥</kbd> is held.
 
 To use <kbd>⌃F3</kbd> itself, turn off *Move focus to the Dock* under *System Settings ▸ Keyboard ▸
 Keyboard Shortcuts ▸ Keyboard*, then record it here.
