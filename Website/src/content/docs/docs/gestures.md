@@ -42,6 +42,7 @@ reopen event.
 | **⌘ while dragging** | Move-only: the item cannot be dropped off the bar by accident |
 | **Drop files on an app** | Open them with it |
 | **Drop files on the Trash** | Trash them |
+| **Hold files over a running app or a folder** | Bring the app forward, or open the folder in Finder, to drop them there |
 
 **Everything in the bar reorders, in both item styles.** Pinned items keep their order on disk.
 Running applications that are not pinned get a position for the session — drop one among the other
@@ -52,6 +53,11 @@ application when dragged clear of it.
 Hold **⌘ while dragging** for move-only. That matters when you are rearranging a full-width bar and
 the pointer keeps leaving it. A press that never became a drag is just a click, so ⌘-drag and
 ⌘-click never collide.
+
+Holding a file over a cell **spring-loads** it, as in the system Dock: after the system's
+spring-loading delay — *System Settings ▸ Accessibility ▸ Pointer Control* — a running application
+comes forward and a folder opens in Finder. An application that is not running is not launched,
+since dropping on it does that already. Rearranging the bar never springs anything.
 
 ## From the Finder
 

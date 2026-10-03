@@ -12,6 +12,8 @@ protocol BarContentViewDelegate: AnyObject {
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], on item: DockItem)
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int)
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint)
+    /// A file drag has rested on `item` for the spring-loading delay. See `SpringLoad`.
+    func barContent(_ view: BarContentView, springOpen item: DockItem)
     /// A thumbnail of the window this cell stands for, or `nil` when there is none to be had —
     /// previews switched off, the permission missing, or the cell is not a window at all.
     func barContent(_ view: BarContentView, previewFor item: DockItem) async -> NSImage?
@@ -44,6 +46,8 @@ final class BarContentView: NSView {
     private var rowRanges: [Range<Int>] = []
     private var caretIndex: Int?
     private var dropTargetView: ItemView?
+    private var springLoad = SpringLoad()
+    private var springTimer: Timer?
     private var pulseTimer: Poll?
     private var clockTimer: Timer?
     private let calendar = CalendarPopover()
@@ -819,13 +823,19 @@ final class BarContentView: NSView {
         let point = convert(sender.draggingLocation, from: nil)
 
         if sender.draggingPasteboard.availableType(from: [.eskeleItem]) != nil {
+            // Rearranging the bar is not carrying something somewhere; nothing should open.
+            cancelSpringLoad()
             setDropTarget(nil)
             setCaret(insertionIndex(at: point))
             return .move
         }
 
         let urls = fileURLs(from: sender)
-        guard !urls.isEmpty else { return [] }
+        guard !urls.isEmpty else {
+            cancelSpringLoad()
+            return []
+        }
+        updateSpringLoad(over: itemView(at: point))
 
         if let target = itemView(at: point), dropAction(for: urls, on: target.item) != nil {
             setCaret(nil)
@@ -839,6 +849,7 @@ final class BarContentView: NSView {
     }
 
     override func draggingExited(_ sender: NSDraggingInfo?) {
+        cancelSpringLoad()
         setCaret(nil)
         setDropTarget(nil)
     }
@@ -846,6 +857,7 @@ final class BarContentView: NSView {
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let point = convert(sender.draggingLocation, from: nil)
         defer {
+            cancelSpringLoad()
             setCaret(nil)
             setDropTarget(nil)
         }
@@ -866,6 +878,43 @@ final class BarContentView: NSView {
 
         delegate?.barContent(self, didDropFiles: urls, atVisualIndex: insertionIndex(at: point))
         return true
+    }
+
+    /// A drag that is let go of without being dropped here — or cancelled with Escape — ends
+    /// without `draggingExited` when the pointer is still over the bar.
+    override func draggingEnded(_ sender: NSDraggingInfo) {
+        cancelSpringLoad()
+    }
+
+    /// Starts the spring-loading delay when a file drag arrives on a cell that opens, and
+    /// abandons it when the drag moves off — see `SpringLoad`.
+    private func updateSpringLoad(over view: ItemView?) {
+        let id = view.flatMap { $0.item.springsOpen ? $0.item.id : nil }
+        let previous = springLoad.target
+        let arm = springLoad.hover(id)
+        if springLoad.target != previous {
+            springTimer?.invalidate()
+            springTimer = nil
+        }
+        guard arm, let id, let delay = SpringLoad.delay() else { return }
+
+        let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.spring(id) }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        springTimer = timer
+    }
+
+    private func spring(_ id: String) {
+        springTimer = nil
+        guard springLoad.fire(id), let item = items.first(where: { $0.id == id }) else { return }
+        delegate?.barContent(self, springOpen: item)
+    }
+
+    private func cancelSpringLoad() {
+        springTimer?.invalidate()
+        springTimer = nil
+        springLoad.reset()
     }
 
     private enum DropAction { case openWith, trash }

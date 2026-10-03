@@ -423,6 +423,10 @@ extension AppDelegate: BarContentViewDelegate {
         model.open(urls, with: item)
     }
 
+    func barContent(_ view: BarContentView, springOpen item: DockItem) {
+        model.springOpen(item)
+    }
+
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int) {
         var offset = 0
         let start = modelIndex(of: index, on: view)

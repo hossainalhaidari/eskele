@@ -608,6 +608,23 @@ final class DockModel {
         }
     }
 
+    /// Opens what a cell stands for so a drag can carry on into it — see `SpringLoad`.
+    ///
+    /// Not `activate`: a click on the app you are already in steps to its next window or hides it,
+    /// and neither is what somebody holding a file over it wants. An app comes forward, with the
+    /// reopen event that gives one with nothing open a window to drop into; a window button raises
+    /// its window and a folder opens in Finder, which is what a click on those does anyway.
+    func springOpen(_ item: DockItem) {
+        guard item.springsOpen else { return }
+        guard case .app(let ref) = item.kind else {
+            activate(item)
+            return
+        }
+        guard let app = runningApp(ref, instance: item.instance) else { return }
+        if app.isHidden { app.unhide() }
+        bringForward(ref, copy: item.instance == nil ? nil : app)
+    }
+
     /// Whatever handles calendar links, which is the user's calendar application whether or not
     /// that is Apple's. Falling back to the bundled one only if nothing claims the scheme.
     private func openCalendar() {

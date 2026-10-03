@@ -14,6 +14,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- **Spring-loading**: hold a dragged file over a running application and it comes forward, or over
+  a folder and it opens in Finder, so you can carry on and drop the file into a message you are
+  writing or a folder further down. It waits as long as the system's own spring-loading delay,
+  under *Accessibility ▸ Pointer Control*, and stays off if you have switched that off.
 - **Sort By** in a folder's context menu lists its stack by name, date added, date modified, date
   created or kind. Downloads starts out newest first, as in the system Dock; every other folder
   keeps sorting by name until you choose otherwise.
