@@ -53,6 +53,10 @@ nothing in the process tree connects them. macOS knows the answer and only expos
 metadata. It agrees with Finder on APFS; on a volume laid out differently Eskele reports nothing
 rather than guessing.
 
+**There is no *Assign To* desktop.** The Dock can tie an application to one desktop, or to all of
+them; that setting belongs to the Dock and the window server, and nothing public lets another app
+set it. *Open at Login*, the other half of the Dock's Options menu, is in Eskele's.
+
 **There is no Lock Screen.** The `CGSession` binary every recipe names is gone from macOS 26, and the
 call that replaced it is private. Sleeping the display is not the same thing and would be a lie.
 

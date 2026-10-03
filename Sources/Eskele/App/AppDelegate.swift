@@ -489,7 +489,7 @@ extension AppDelegate: BarContentViewDelegate {
         menu.autoenablesItems = false
 
         switch item.kind {
-        case .app:
+        case .app(let ref):
             let options = NSMenu()
             options.autoenablesItems = false
             options.addItem(action(
@@ -499,6 +499,7 @@ extension AppDelegate: BarContentViewDelegate {
             options.addItem(action(
                 String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
                 item, #selector(revealInFinder(_:))))
+            if let loginItem = openAtLoginItem(for: item, ref: ref) { options.addItem(loginItem) }
             if item.isRunning {
                 let forceRelaunch = action(
                     ClickAction.forceRelaunch.title(for: item), item, #selector(forceRelaunchApp(_:)))
@@ -784,6 +785,25 @@ extension AppDelegate: BarContentViewDelegate {
 
     @objc private func quitEskele() {
         NSApp.terminate(nil)
+    }
+
+    /// *Open at Login*, ticked when the app already does — or nil when this macOS no longer has the
+    /// list, or the app is Eskele, whose own launch at login is in Settings and works differently.
+    private func openAtLoginItem(for item: DockItem, ref: AppRef) -> NSMenuItem? {
+        guard AppLoginItems.isAvailable, ref.bundleID != Bundle.main.bundleIdentifier else { return nil }
+        return action(
+            String(localized: "Open at Login", comment: "Menu item: open this app when you log in"),
+            item, #selector(toggleOpenAtLogin(_:)),
+            state: AppLoginItems.isEnabled(url: ref.url, bundleID: ref.bundleID))
+    }
+
+    @objc private func toggleOpenAtLogin(_ sender: NSMenuItem) {
+        guard let item = item(from: sender), case .app(let ref) = item.kind else { return }
+        let enable = sender.state != .on
+        if !AppLoginItems.setEnabled(enable, url: ref.url, bundleID: ref.bundleID) {
+            NSLog("Eskele: could not \(enable ? "add" : "remove") \(ref.name) as a login item")
+            NSSound.beep()
+        }
     }
 
     /// *Sort By*, with the folder's current order ticked — as the Dock offers it on a stack.

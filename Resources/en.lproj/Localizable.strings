@@ -871,6 +871,10 @@
    AppDelegate.swift:949 */
 "Open Trash Instead" = "Open Trash Instead";
 
+/* Menu item: open this app when you log in
+   AppDelegate.swift:795 */
+"Open at Login" = "Open at Login";
+
 /* Menu item: open this folder in Finder
    StackMenuController.swift:61 */
 "Open in Finder" = "Open in Finder";
