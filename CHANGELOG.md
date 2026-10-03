@@ -12,6 +12,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Shortcuts actions are there.** 0.3.0 described six Eskele actions in Shortcuts, but was built
+  without what Shortcuts reads them from, so none appeared. The `eskele://` URLs were not affected.
+
 ## [0.3.0] - 2026-10-03
 
 ### Added

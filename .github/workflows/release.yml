@@ -149,6 +149,9 @@ jobs:
           NOTARY_API_KEY: ${{ secrets.NOTARY_API_KEY }}
           NOTARY_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
           NOTARY_ISSUER: ${{ secrets.NOTARY_API_ISSUER_ID }}
+          # The release notes promise the Shortcuts actions, so a build that could not describe
+          # them fails here rather than shipping without them, as 0.3.0 did.
+          ESKELE_REQUIRE_INTENTS: '1'
         run: |
           export NOTARY_KEY="$RUNNER_TEMP/notary.p8"
           printf '%s\n' "$NOTARY_API_KEY" > "$NOTARY_KEY"

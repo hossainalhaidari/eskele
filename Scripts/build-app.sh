@@ -19,9 +19,32 @@ cd "$ROOT"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 LINK_SDK=(-Xswiftc -Xclang-linker -Xswiftc -isysroot -Xswiftc -Xclang-linker -Xswiftc "$SDK")
 
+# ESKELE_BUILD_SYSTEM=native builds the way a toolchain older than Swift 6.4 does, which is how
+# to reproduce the release runner's build on a newer Mac.
+BUILD_SYSTEM=()
+[[ -n "${ESKELE_BUILD_SYSTEM:-}" ]] && BUILD_SYSTEM=(--build-system "$ESKELE_BUILD_SYSTEM")
+
+# The Shortcuts actions are described from the compiler's const values (see below). Swift Build
+# writes them on its own; SwiftPM's native build system, which is what a toolchain older than 6.4
+# uses — the release runner's Xcode 26.6 among them — writes none unless asked. Swift Build puts
+# its products under .build/out, which is how the two are told apart before anything is built.
+# Asked for, the native build writes one file per module to the same path; the targets Eskele
+# depends on are compiled first, so the file left is Eskele's, and the check below makes sure.
+CONST_VALUES_FLAGS=()
+NATIVE_CONST_VALUES=""
+if [[ "$(swift build -c "$CONFIG" ${BUILD_SYSTEM[@]+"${BUILD_SYSTEM[@]}"} --show-bin-path 2>/dev/null)" != */out/Products/* ]]; then
+	NATIVE_CONST_VALUES="$ROOT/.build/Eskele-$CONFIG.swiftconstvalues"
+	rm -f "$NATIVE_CONST_VALUES"
+	CONST_VALUES_FLAGS=(
+		-Xswiftc -emit-const-values-path -Xswiftc "$NATIVE_CONST_VALUES"
+		-Xswiftc -Xfrontend -Xswiftc -const-gather-protocols-file
+		-Xswiftc -Xfrontend -Xswiftc "$ROOT/Scripts/appintents-protocols.json"
+	)
+fi
+
 # Build chatter goes to stderr so the caller can capture the bundle path from stdout.
-swift build -c "$CONFIG" "${LINK_SDK[@]}" >&2
-BIN="$(swift build -c "$CONFIG" --show-bin-path 2>/dev/null)"
+swift build -c "$CONFIG" ${BUILD_SYSTEM[@]+"${BUILD_SYSTEM[@]}"} "${LINK_SDK[@]}" ${CONST_VALUES_FLAGS[@]+"${CONST_VALUES_FLAGS[@]}"} >&2
+BIN="$(swift build -c "$CONFIG" ${BUILD_SYSTEM[@]+"${BUILD_SYSTEM[@]}"} --show-bin-path 2>/dev/null)"
 APP="$BIN/Eskele.app"
 
 rm -rf "$APP"
@@ -84,15 +107,29 @@ cp "$ROOT/LICENSE" "$APP/Contents/Resources/Licenses/Eskele.txt"
 cp "$ROOT/.build/artifacts/sparkle/Sparkle/LICENSE" "$APP/Contents/Resources/Licenses/Sparkle.txt"
 
 # The Shortcuts actions. Shortcuts reads what an app can do from Metadata.appintents in its bundle,
-# which Xcode writes and SwiftPM does not. Swift Build already emits the compiler's const values for
-# the App Intents types; Xcode's metadata processor turns them into the bundle's metadata. Without
-# Xcode, or if the build stops leaving the const values where they are looked for, the app is still
-# built — Shortcuts just has no actions for it — so this warns rather than failing.
+# which Xcode writes and SwiftPM does not. The compiler's const values for the App Intents types —
+# from Swift Build, or asked for above — go through Xcode's metadata processor to make it.
+#
+# Without it the app still works; Shortcuts just has no actions for it. So a development build
+# warns and carries on, and a release, which promises the actions in its notes, sets
+# ESKELE_REQUIRE_INTENTS and fails instead: 0.3.0 shipped without them because this only warned.
+intents_missing() {
+	if [[ -n "${ESKELE_REQUIRE_INTENTS:-}" ]]; then
+		echo "error: $1" >&2
+		exit 1
+	fi
+	echo "warning: $1" >&2
+}
 INTENTS_TOOL="$(xcrun --find appintentsmetadataprocessor 2>/dev/null || true)"
 CONFIG_DIR="$(tr '[:lower:]' '[:upper:]' <<<"${CONFIG:0:1}")${CONFIG:1}"
 CONST_LIST="$(mktemp)"
 SOURCE_LIST="$(mktemp)"
-find "$ROOT/.build" -path "*/Eskele.build/$CONFIG_DIR/*" -name '*.swiftconstvalues' >"$CONST_LIST" 2>/dev/null || true
+if [[ -n "$NATIVE_CONST_VALUES" ]]; then
+	# Eskele's file names its intents; any other module's would not.
+	grep -qs MoveBarIntent "$NATIVE_CONST_VALUES" && echo "$NATIVE_CONST_VALUES" >"$CONST_LIST"
+else
+	find "$ROOT/.build" -path "*/Eskele.build/$CONFIG_DIR/*" -name '*.swiftconstvalues' >"$CONST_LIST" 2>/dev/null || true
+fi
 find "$ROOT/Sources/Eskele" -name '*.swift' >"$SOURCE_LIST"
 if [[ -n "$INTENTS_TOOL" && -s "$CONST_LIST" ]]; then
 	"$INTENTS_TOOL" \
@@ -107,9 +144,11 @@ if [[ -n "$INTENTS_TOOL" && -s "$CONST_LIST" ]]; then
 		--binary-file "$APP/Contents/MacOS/Eskele" \
 		--source-file-list "$SOURCE_LIST" \
 		--swift-const-vals-list "$CONST_LIST" >/dev/null 2>&1 \
-		|| echo "warning: the Shortcuts actions could not be described; Shortcuts will not list them." >&2
+		|| intents_missing "the Shortcuts actions could not be described; Shortcuts will not list them."
+	[[ -s "$APP/Contents/Resources/Metadata.appintents/extract.actionsdata" ]] \
+		|| intents_missing "no Shortcuts actions were written; Shortcuts will not list Eskele's actions."
 else
-	echo "warning: no App Intents metadata processor or const values; Shortcuts will not list Eskele's actions." >&2
+	intents_missing "no App Intents metadata processor or const values; Shortcuts will not list Eskele's actions."
 fi
 rm -f "$CONST_LIST" "$SOURCE_LIST"
 
