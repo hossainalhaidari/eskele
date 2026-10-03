@@ -31,6 +31,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   pinned to another Mac, with the names and stack orders you gave it. Applications are found by what
   they are and folders in your home folder by where they sit in it, so a different user name is no
   obstacle. Anything that is not on the new Mac is left out, and you are told what.
+- **Scripting**: `eskele://` URLs move the bar, turn auto-hide on or off, apply a design, reveal the
+  bar, open the Apps Menu or Settings, move the keyboard to the bar, and pin or unpin items — from
+  Shortcuts, Raycast, Alfred or `open` in a shell. The app you were in keeps the keyboard. Shortcuts
+  also lists six Eskele actions of its own. Nothing a URL can do quits an app, empties the Trash or
+  touches the system Dock, since any web page can open one.
 
 ## [0.2.0] - 2026-10-02
 

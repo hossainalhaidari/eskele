@@ -164,6 +164,10 @@
    PowerAction.swift:64 */
 "Applications will be asked to quit, and anything unsaved may be lost." = "Applications will be asked to quit, and anything unsaved may be lost.";
 
+/* Shortcuts action
+   Intents.swift:148 */
+"Apply Design" = "Apply Design";
+
 /* VoiceOver: the Apps Menu cell's name
    CellDescription.swift:100 */
 "Apps" = "Apps";
@@ -195,6 +199,10 @@
 
 /* PreferencesView.swift:343 */
 "Attention" = "Attention";
+
+/* Shortcuts: the auto-hide setting
+   Intents.swift:136 */
+"Auto-Hide" = "Auto-Hide";
 
 /* PreferencesView.swift:523 */
 "Auto-hide" = "Auto-hide";
@@ -385,6 +393,10 @@
    PreferencesView.swift:666 */
 "Each display's bar lists only the apps with a window on it. Pinned shortcuts, the Apps Menu and the Trash stay on every bar, and so does anything with no window open." = "Each display's bar lists only the apps with a window on it. Pinned shortcuts, the Apps Menu and the Trash stay on every bar, and so does anything with no window open.";
 
+/* Shortcuts: the screen edge the bar sits on
+   Intents.swift:53, Intents.swift:119 */
+"Edge" = "Edge";
+
 /* PreferencesView.swift:304 */
 "Edit Badge Sources…" = "Edit Badge Sources…";
 
@@ -445,6 +457,10 @@
 /* Footer under the update policy picker when updates install automatically
    UpdatePolicy.swift:48 */
 "Eskele checks once a day, downloads what it finds in the background, and installs it the next time it quits — or, if it goes a long time without quitting, offers to restart." = "Eskele checks once a day, downloads what it finds in the background, and installs it the next time it quits — or, if it goes a long time without quitting, offers to restart.";
+
+/* Shortcuts error when the app was not ready to run an action
+   Intents.swift:42 */
+"Eskele did not finish starting. Try again in a moment." = "Eskele did not finish starting. Try again in a moment.";
 
 /* OnboardingView.swift:13 */
 "Eskele is running" = "Eskele is running";
@@ -532,6 +548,10 @@
 
 /* PreferencesView.swift:85 */
 "Give each window its own button" = "Give each window its own button";
+
+/* Shortcuts action description
+   Intents.swift:150 */
+"Gives the bar the shape of one of its designs, as the tiles in Settings do." = "Gives the bar the shape of one of its designs, as the tiles in Settings do.";
 
 /* Permission status
    PermissionsService.swift:17 */
@@ -736,8 +756,20 @@
    AppDelegate.swift:492 */
 "Minimise" = "Minimise";
 
+/* Shortcuts action
+   Intents.swift:190 */
+"Move Focus to the Bar" = "Move Focus to the Bar";
+
 /* PreferencesView.swift:527 */
 "Move focus to the bar with a shortcut" = "Move focus to the bar with a shortcut";
+
+/* Shortcuts action
+   Intents.swift:114 */
+"Move the Bar" = "Move the Bar";
+
+/* Shortcuts action description
+   Intents.swift:116 */
+"Moves Eskele's bar to the left, bottom or right edge of the screen." = "Moves Eskele's bar to the left, bottom or right edge of the screen.";
 
 /* Folder, as Finder names it
    SystemCatalog.swift:152 */
@@ -814,6 +846,10 @@
    Settings.swift:84 */
 "Off" = "Off";
 
+/* Shortcuts: switch choice
+   Intents.swift:75 */
+"On" = "On";
+
 /* PreferencesView.swift:88 */
 "One button per window instead of one per app." = "One button per window instead of one per app.";
 
@@ -879,6 +915,14 @@
    StackMenuController.swift:61 */
 "Open in Finder" = "Open in Finder";
 
+/* Shortcuts action
+   Intents.swift:177 */
+"Open the Apps Menu" = "Open the Apps Menu";
+
+/* Shortcuts action description
+   Intents.swift:179 */
+"Opens Eskele's Apps Menu, or closes it if it is open." = "Opens Eskele's Apps Menu, or closes it if it is open.";
+
 /* Submenu holding the less-used item actions
    AppDelegate.swift:471 */
 "Options" = "Options";
@@ -929,6 +973,10 @@
 
 /* PreferencesView.swift:319 */
 "Progress" = "Progress";
+
+/* Shortcuts action description
+   Intents.swift:192 */
+"Puts the keyboard on the bar, for the arrow keys and VoiceOver." = "Puts the keyboard on the bar, for the arrow keys and VoiceOver.";
 
 /* Menu item: quit this app
    AppDelegate.swift:485 */
@@ -1057,6 +1105,14 @@
    AppDelegate.swift:809 */
 "Separators only show while the order is As Arranged." = "Separators only show while the order is As Arranged.";
 
+/* Shortcuts action
+   Intents.swift:130 */
+"Set Auto-Hide" = "Set Auto-Hide";
+
+/* Shortcuts: turn something on, off or toggle it
+   Intents.swift:73 */
+"Setting" = "Setting";
+
 /* Name of the settings window
    LauncherPanelController.swift:388, LauncherPanelController.swift:397, SystemCatalog.swift:86 */
 "Settings" = "Settings";
@@ -1102,6 +1158,10 @@
 
 /* PreferencesView.swift:303 */
 "Show number badges" = "Show number badges";
+
+/* Shortcuts action
+   Intents.swift:164 */
+"Show or Hide the Bar" = "Show or Hide the Bar";
 
 /* PreferencesView.swift:537 */
 "Show processor and memory use while %@ is held" = "Show processor and memory use while %@ is held";
@@ -1149,6 +1209,10 @@
 /* Power action
    PowerAction.swift:18, PowerAction.swift:29 */
 "Sleep" = "Sleep";
+
+/* Shortcuts action description
+   Intents.swift:166 */
+"Slides an auto-hiding bar out, or away again — what the reveal shortcut does." = "Slides an auto-hiding bar out, or away again — what the reveal shortcut does.";
 
 /* Bar scale: the slimmer of the two, 32pt
    Settings.swift:135 */
@@ -1259,6 +1323,10 @@
    ClockContent.swift:11 */
 "Time" = "Time";
 
+/* Shortcuts: switch choice
+   Intents.swift:77 */
+"Toggle" = "Toggle";
+
 /* Where the icons sit along a vertical bar
    Settings.swift:174 */
 "Top" = "Top";
@@ -1277,6 +1345,10 @@
 /* Tooltip: why Hide Menu Bar Icon is greyed out
    StatusItemController.swift:81 */
 "Turn the Apps Menu on first — it would otherwise be the last way back to Settings." = "Turn the Apps Menu on first — it would otherwise be the last way back to Settings.";
+
+/* Shortcuts action description
+   Intents.swift:132 */
+"Turns hiding the bar until the pointer reaches the edge on or off." = "Turns hiding the bar until the pointer reaches the edge on or off.";
 
 /* Shortcut recorder, waiting for keys
    ShortcutRecorder.swift:161 */

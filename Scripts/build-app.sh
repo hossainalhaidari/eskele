@@ -83,6 +83,36 @@ mkdir -p "$APP/Contents/Resources/Licenses"
 cp "$ROOT/LICENSE" "$APP/Contents/Resources/Licenses/Eskele.txt"
 cp "$ROOT/.build/artifacts/sparkle/Sparkle/LICENSE" "$APP/Contents/Resources/Licenses/Sparkle.txt"
 
+# The Shortcuts actions. Shortcuts reads what an app can do from Metadata.appintents in its bundle,
+# which Xcode writes and SwiftPM does not. Swift Build already emits the compiler's const values for
+# the App Intents types; Xcode's metadata processor turns them into the bundle's metadata. Without
+# Xcode, or if the build stops leaving the const values where they are looked for, the app is still
+# built — Shortcuts just has no actions for it — so this warns rather than failing.
+INTENTS_TOOL="$(xcrun --find appintentsmetadataprocessor 2>/dev/null || true)"
+CONFIG_DIR="$(tr '[:lower:]' '[:upper:]' <<<"${CONFIG:0:1}")${CONFIG:1}"
+CONST_LIST="$(mktemp)"
+SOURCE_LIST="$(mktemp)"
+find "$ROOT/.build" -path "*/Eskele.build/$CONFIG_DIR/*" -name '*.swiftconstvalues' >"$CONST_LIST" 2>/dev/null || true
+find "$ROOT/Sources/Eskele" -name '*.swift' >"$SOURCE_LIST"
+if [[ -n "$INTENTS_TOOL" && -s "$CONST_LIST" ]]; then
+	"$INTENTS_TOOL" \
+		--output "$APP/Contents/Resources" \
+		--toolchain-dir "$(dirname "$(dirname "$(dirname "$(xcrun --find swift)")")")" \
+		--module-name Eskele \
+		--sdk-root "$SDK" \
+		--xcode-version "$(xcodebuild -version | awk '/Build version/ {print $3}')" \
+		--platform-family macOS \
+		--deployment-target "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$PLIST")" \
+		--target-triple "$(uname -m)-apple-macos$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$PLIST")" \
+		--binary-file "$APP/Contents/MacOS/Eskele" \
+		--source-file-list "$SOURCE_LIST" \
+		--swift-const-vals-list "$CONST_LIST" >/dev/null 2>&1 \
+		|| echo "warning: the Shortcuts actions could not be described; Shortcuts will not list them." >&2
+else
+	echo "warning: no App Intents metadata processor or const values; Shortcuts will not list Eskele's actions." >&2
+fi
+rm -f "$CONST_LIST" "$SOURCE_LIST"
+
 # Signing identity decides whether macOS remembers this app between builds.
 #
 # An ad-hoc signature's designated requirement is the binary's own cdhash, so every rebuild is a

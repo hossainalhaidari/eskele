@@ -57,6 +57,7 @@ export default defineConfig({
             { label: 'Clicks and shortcuts', slug: 'docs/gestures' },
             { label: 'The Apps Menu', slug: 'docs/apps-menu' },
             { label: 'Windows', slug: 'docs/windows' },
+            { label: 'Scripting', slug: 'docs/scripting' },
           ],
         },
         {

@@ -39,8 +39,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// While a shortcut is being recorded, none of ours are registered — otherwise pressing the key
     /// already assigned, to record it again, would fire it instead of reaching the recorder.
     private var hotKeysSuspended = false
+    /// The last app other than Eskele to be in front. Opening an `eskele://` URL activates Eskele
+    /// before the URL arrives, so by then the app the user was in is no longer the frontmost one —
+    /// this is the only record of it.
+    private var lastOtherApp: NSRunningApplication?
+    private var activationObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        trackLastOtherApp()
         settings = persistence.loadSettings()
         // A hand-edited file can turn off both routes to the settings window at once; the UI does
         // not allow it, so put the menu-bar icon back rather than launching unreachable.
@@ -187,6 +193,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updates.start()
 
         if !settings.hasCompletedOnboarding { presentOnboarding() }
+        // Last, so a Shortcuts action that launched us waits until there is a bar to act on.
+        ScriptRunner.perform = { [weak self] command in self?.run([command]) }
     }
 
     private func presentOnboarding() {
@@ -208,6 +216,69 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
         windows.raiseOwnFrontWindow()
         return true
+    }
+
+    /// `eskele://` URLs — see `ScriptCommand`. Anything else that arrives here, such as a file
+    /// dropped on the app in Finder, is not something the bar was asked to do and is ignored.
+    ///
+    /// LaunchServices makes Eskele active to deliver a URL, so afterwards the front goes back to the
+    /// app the user was in: moving the bar from a script must not take the keyboard away from what
+    /// you were typing into — nor must a URL that was refused. The commands that are *for* the
+    /// keyboard keep it, and are told where it goes when they are done.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let commands = urls.filter { $0.scheme?.lowercased() == ScriptCommand.scheme }.compactMap { url in
+            switch ScriptCommand.parse(url, home: home) {
+            case .success(let command): return command
+            // Logged rather than shown: the sender is usually a script with nobody watching, and
+            // an alert would steal focus from whatever the person is actually doing.
+            case .failure(let error):
+                NSLog("Eskele: ignored \(url.absoluteString) — \(error)")
+                return nil
+            }
+        }
+        run(commands)
+    }
+
+    /// Carries out commands from a URL or a Shortcuts action. A Shortcuts action runs with Eskele in
+    /// the background, so there the front is never taken and nothing needs giving back.
+    private func run(_ commands: [ScriptCommand]) {
+        let returnTo = lastOtherApp
+        for command in commands { perform(command, returningTo: returnTo) }
+        if !commands.contains(where: \.takesKeyboard), NSApp.isActive, let returnTo, !returnTo.isTerminated {
+            returnTo.activate()
+        }
+    }
+
+    private func perform(_ command: ScriptCommand, returningTo returnTo: NSRunningApplication?) {
+        if let updated = command.applied(to: settings) {
+            apply(updated)
+            return
+        }
+        switch command {
+        case .reveal: coordinator.toggleReveal()
+        case .appsMenu: toggleAppsMenu(returningTo: returnTo)
+        case .focus: toggleBarKeyboard(returningTo: returnTo)
+        case .settings: statusItemDidShowPreferences()
+        case .pin(let targets):
+            for url in targets.compactMap(location) { model.pin(url: url, atVisualIndex: nil) }
+        case .unpin(let targets):
+            for url in targets.compactMap(location) { model.unpin(url: url) }
+        case .edge, .autohide, .design:
+            break
+        }
+    }
+
+    /// Where a script's target is on this Mac: as given for a path, or wherever LaunchServices
+    /// says the app is installed.
+    private func location(of target: ScriptCommand.Target) -> URL? {
+        switch target {
+        case .path(let url): return url
+        case .app(let bundleID):
+            let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
+            if url == nil { NSLog("Eskele: no app with the bundle identifier \(bundleID)") }
+            return url
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -301,14 +372,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The same panel the Apps Menu cell opens, anchored the same way, so the key and the click are
     /// the same affordance — and the panel already takes focus into its search field, which is what
     /// makes "press it and start typing" work.
-    private func toggleAppsMenu() {
+    private func toggleAppsMenu(returningTo fallback: NSRunningApplication? = nil) {
         guard !launcher.isVisible else {
             launcher.close()
             return
         }
         // Read before the launcher opens: taking the keyboard from the bar is what makes the bar
         // forget where it came from.
-        let returnTo = coordinator.keyboardReturnApp
+        let returnTo = coordinator.keyboardReturnApp ?? fallback
         guard let (anchor, screen, bar) = coordinator.appsMenuAnchor() else { return }
         // Held open exactly as a click holds it: an auto-hiding bar must not slide away underneath
         // the panel it is anchored to while the user is still typing into it.
@@ -320,11 +391,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Moves focus to the bar, or gives it back to the app it came from (§5.27).
-    private func toggleBarKeyboard() {
+    /// - Parameter fallback: where the keyboard goes back to when Eskele is already in front for
+    ///   some other reason — an `eskele://focus` URL, which activated it.
+    private func toggleBarKeyboard(returningTo fallback: NSRunningApplication? = nil) {
         // From inside the launcher, Eskele is already in front: the app to go back to is the one the
         // launcher took the keyboard from, and closing it must not hand the keyboard back on the way.
-        let returnTo = launcher.isVisible ? launcher.relinquishKeyboard() : nil
+        let returnTo = launcher.isVisible ? launcher.relinquishKeyboard() : fallback
         coordinator.toggleKeyboard(returningTo: returnTo)
+    }
+
+    private func trackLastOtherApp() {
+        let front = NSWorkspace.shared.frontmostApplication
+        if front != .current { lastOtherApp = front }
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            MainActor.assumeIsolated {
+                guard let app, app != .current else { return }
+                self?.lastOtherApp = app
+            }
+        }
     }
 
     /// A file appearing in `Icons/` has to reach the cells, and the cells are rebuilt from the

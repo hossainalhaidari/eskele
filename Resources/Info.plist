@@ -51,6 +51,17 @@
 	<false/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Eskele asks Finder to empty the Trash. macOS provides no other way to do it.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>de.alhaidari.Eskele</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>eskele</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSServices</key>
 	<array>
 		<dict>

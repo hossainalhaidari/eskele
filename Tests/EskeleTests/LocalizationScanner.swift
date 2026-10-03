@@ -10,7 +10,8 @@ import Foundation
 /// Two shapes are localizable, and they are localizable for different reasons:
 ///
 /// 1. `String(localized:)` and `NSLocalizedString`, which say so outright. Everything outside
-///    SwiftUI uses these.
+///    SwiftUI uses these — and `LocalizedStringResource("…", comment:)`, which the Shortcuts
+///    actions use for their titles so that this scan can see them.
 /// 2. A bare literal in a SwiftUI label position — `Text("…")`, `Toggle("…", isOn:)`, `.help("…")`.
 ///    These are `LocalizedStringKey`, so SwiftUI looks them up in `Bundle.main` whether or not the
 ///    author was thinking about translation. They are the ones worth scanning for: nothing at the
@@ -45,7 +46,7 @@ enum LocalizableScan {
     /// ternary, so there is no single first argument to take — all the literals in the call are
     /// keys.
     private static let callShapes = [
-        "String(", "NSLocalizedString(",
+        "String(", "NSLocalizedString(", "LocalizedStringResource(",
         "Text(", "Toggle(", "Button(", "Picker(", "LabeledContent(", "Label(", "Section(",
         "Stepper(", "TextField(", "Link(", ".help(",
     ]

@@ -394,6 +394,19 @@ final class DockModel {
         rebuild()
     }
 
+    /// Unpins whatever `url` would pin as — the same app, folder or file, found the way `pin` would
+    /// store it. For `eskele://unpin`, which names a thing rather than pointing at a cell.
+    @discardableResult
+    func unpin(url: URL) -> Bool {
+        guard let entry = PersistedItem.make(for: url),
+              pinned.contains(where: { $0.identity == entry.identity })
+        else { return false }
+        pinned.removeAll { $0.identity == entry.identity }
+        persistence.saveLayout(pinned)
+        rebuild()
+        return true
+    }
+
     /// The name a cell has been given, if any — what "Reset Name" is offered for.
     func customName(of item: DockItem) -> String? {
         let identity = persistedIdentity(for: item)
