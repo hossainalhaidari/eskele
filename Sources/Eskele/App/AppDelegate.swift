@@ -1193,6 +1193,63 @@ extension AppDelegate: PreferencesActions {
         }
     }
 
+    func exportLayout() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = LayoutFile.suggestedName
+        NSApp.activate()
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            try LayoutFile.encode(model.pinnedItems, home: home).write(to: url, options: .atomic)
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    /// No confirmation, as for settings: choosing the file is the confirmation, and the layout it
+    /// replaces is one Export away from being kept. What is refused is a file that would leave the
+    /// bar empty — one that is not a layout, or one with nothing in it that is on this Mac.
+    func importLayout() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        NSApp.activate()
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let filename = url.lastPathComponent
+
+        let incoming: [PersistedItem]
+        do {
+            incoming = try LayoutFile.read(try Data(contentsOf: url))
+        } catch let error as LayoutFile.ReadError {
+            NSLog("Eskele: refused to import \(filename) as a layout (\(error))")
+            let alert = NSAlert()
+            alert.messageText = LayoutFile.refusal(filename: filename)
+            alert.informativeText = LayoutFile.refusalDetail
+            alert.runModal()
+            return
+        } catch {
+            NSAlert(error: error).runModal()
+            return
+        }
+
+        let resolution = LayoutFile.resolve(
+            incoming, home: FileManager.default.homeDirectoryForCurrentUser)
+        let found = resolution.items.contains { $0.kind != .separator }
+        guard found || incoming.allSatisfy({ $0.kind == .separator }) else {
+            let alert = NSAlert()
+            alert.messageText = LayoutFile.nothingFound(filename: filename)
+            alert.informativeText = LayoutFile.nothingFoundDetail
+            alert.runModal()
+            return
+        }
+        model.replacePinned(resolution.items)
+        guard !resolution.missing.isEmpty else { return }
+        let alert = NSAlert()
+        alert.messageText = LayoutFile.someMissing
+        alert.informativeText = LayoutFile.someMissingDetail(resolution.missing)
+        alert.runModal()
+    }
+
     func restoreDefaultSettings() {
         NSApp.activate()
         let alert = NSAlert()

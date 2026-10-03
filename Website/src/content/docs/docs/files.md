@@ -46,7 +46,18 @@ hand:
 
 Importing and restoring defaults both leave the [System Dock](../system-dock/) choices as they are on
 this Mac, and neither touches the other files here: pinned items and their names, custom icons, badge
-and progress sources. A reset keeps your Custom design under its tile, so the layout you had is one
+and progress sources.
+
+### Moving the layout to another Mac
+
+`layout.json` cannot simply be copied: each pin is a bookmark to a file on one particular disk, and
+its path starts with this Mac's home folder. *Export Layout…*, beside the settings buttons, writes a
+copy without the bookmarks and with paths in your home folder written as `~/…`. *Import Layout…*
+reads one — or a plain copy of `layout.json` — and finds each item here: applications by their
+bundle identifier, wherever they are installed, then folders and files by path. What it finds
+replaces what is pinned now, with the names and stack orders you gave them; anything that is not on
+this Mac is left out, and a list says what. A file with nothing on it that exists here is refused,
+rather than emptying the bar. A reset keeps your Custom design under its tile, so the layout you had is one
 click away.
 
 ## layout.json

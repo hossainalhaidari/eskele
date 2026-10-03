@@ -11,6 +11,8 @@ protocol PreferencesActions: AnyObject {
     func setHotKeysSuspended(_ suspended: Bool)
     func exportSettings()
     func importSettings()
+    func exportLayout()
+    func importLayout()
     func restoreDefaultSettings()
 }
 
@@ -893,6 +895,11 @@ struct GeneralPane: View {
                     Spacer()
                     Button("Restore Defaults…") { actions?.restoreDefaultSettings() }
                 }
+                HStack(spacing: 8) {
+                    Button("Export Layout…") { actions?.exportLayout() }
+                    Button("Import Layout…") { actions?.importLayout() }
+                    Spacer()
+                }
             } header: {
                 Text("Transfer and Reset")
             } footer: {
@@ -960,6 +967,11 @@ struct GeneralPane: View {
             Export saves your settings as one file, to keep or to take to another Mac, and Import reads \
             one back. Neither importing nor restoring defaults changes the System Dock tab, or anything \
             kept in a file of its own: pinned items, names, icons, and badge and progress sources.
+
+            The layout is what you have pinned, with the names and stack order you gave it. Importing \
+            one replaces what is pinned now. Apps are found by what they are rather than where, and \
+            folders and files in your home folder by where they sit in it, so a layout from another \
+            Mac finds them here; anything that is not here is left out, and you are told what.
             """,
         comment: "Footer under the export, import and restore defaults buttons")
 

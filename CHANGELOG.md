@@ -25,6 +25,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   before. One swipe on a trackpad is one window, however far it goes. An application in the
   background comes forward first, on the window it was on. Turn it off under *Behaviour ▸
   Displays*.
+- **Export Layout** and **Import Layout**, under *General ▸ Transfer and Reset*, take what you have
+  pinned to another Mac, with the names and stack orders you gave it. Applications are found by what
+  they are and folders in your home folder by where they sit in it, so a different user name is no
+  obstacle. Anything that is not on the new Mac is left out, and you are told what.
 
 ## [0.2.0] - 2026-10-02
 

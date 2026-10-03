@@ -426,6 +426,17 @@ final class DockModel {
         rebuild()
     }
 
+    /// What is pinned, as it is stored — for Export Layout.
+    var pinnedItems: [PersistedItem] { pinned }
+
+    /// Replaces everything pinned at once — Import Layout. Running apps keep the positions they
+    /// had for the session; they were never part of the layout.
+    func replacePinned(_ items: [PersistedItem]) {
+        pinned = items
+        persistence.saveLayout(pinned)
+        rebuild()
+    }
+
     /// Changes how a pinned folder's stack is sorted.
     ///
     /// Picking the folder's default stores nothing, so the folder goes back to following it — the

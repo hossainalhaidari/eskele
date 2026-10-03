@@ -423,6 +423,10 @@
    PreferencesView.swift:903 */
 "Eskele %@ is available." = "Eskele %@ is available.";
 
+/* Suggested file name for an exported layout; the .json extension is added for you
+   LayoutFile.swift:112 */
+"Eskele Layout" = "Eskele Layout";
+
 /* Tooltip on the launcher's settings button
    LauncherPanelController.swift:395, SettingsFile.swift:43 */
 "Eskele Settings" = "Eskele Settings";
@@ -457,12 +461,15 @@
    Settings.swift:52 */
 "Everything in your Applications folders." = "Everything in your Applications folders.";
 
+/* PreferencesView.swift:899 */
+"Export Layout…" = "Export Layout…";
+
 /* PreferencesView.swift:805 */
 "Export Settings…" = "Export Settings…";
 
 /* Footer under the export, import and restore defaults buttons
-   PreferencesView.swift:849 */
-"Export saves your settings as one file, to keep or to take to another Mac, and Import reads one back. Neither importing nor restoring defaults changes the System Dock tab, or anything kept in a file of its own: pinned items, names, icons, and badge and progress sources." = "Export saves your settings as one file, to keep or to take to another Mac, and Import reads one back. Neither importing nor restoring defaults changes the System Dock tab, or anything kept in a file of its own: pinned items, names, icons, and badge and progress sources.";
+   PreferencesView.swift:966 */
+"Export saves your settings as one file, to keep or to take to another Mac, and Import reads one back. Neither importing nor restoring defaults changes the System Dock tab, or anything kept in a file of its own: pinned items, names, icons, and badge and progress sources.\n\nThe layout is what you have pinned, with the names and stack order you gave it. Importing one replaces what is pinned now. Apps are found by what they are rather than where, and folders and files in your home folder by where they sit in it, so a layout from another Mac finds them here; anything that is not here is left out, and you are told what." = "Export saves your settings as one file, to keep or to take to another Mac, and Import reads one back. Neither importing nor restoring defaults changes the System Dock tab, or anything kept in a file of its own: pinned items, names, icons, and badge and progress sources.\n\nThe layout is what you have pinned, with the names and stack order you gave it. Importing one replaces what is pinned now. Apps are found by what they are rather than where, and folders and files in your home folder by where they sit in it, so a layout from another Mac finds them here; anything that is not here is left out, and you are told what.";
 
 /* Trade-off of the ⌥Space shortcut choice
    Settings.swift:107 */
@@ -604,6 +611,9 @@
 /* How each cell is drawn
    Settings.swift:160 */
 "Icons with Labels" = "Icons with Labels";
+
+/* PreferencesView.swift:900 */
+"Import Layout…" = "Import Layout…";
 
 /* PreferencesView.swift:806 */
 "Import Settings…" = "Import Settings…";
@@ -783,6 +793,18 @@
 /* Permission status: the system has not been asked, so nothing is decided
    PermissionsService.swift:20 */
 "Not requested yet" = "Not requested yet";
+
+/* Layout import refused because none of its apps, folders or files exist here
+   LayoutFile.swift:133 */
+"Nothing in “%@” is on this Mac." = "Nothing in “%@” is on this Mac.";
+
+/* Layout import refused because nothing in it exists here, under the message
+   LayoutFile.swift:139 */
+"Nothing was changed, so the bar keeps what it has. Install the apps, or copy the folders and files across, and import it again." = "Nothing was changed, so the bar keeps what it has. Install the apps, or copy the folders and files across, and import it again.";
+
+/* Layout import refused, under the message
+   LayoutFile.swift:124 */
+"Nothing was changed. A layout file is one saved with Export Layout, or a copy of layout.json." = "Nothing was changed. A layout file is one saved with Export Layout, or a copy of layout.json.";
 
 /* Import refused, under the message
    SettingsFile.swift:87 */
@@ -1136,6 +1158,10 @@
    AppCategory.swift:80 */
 "Social Networking" = "Social Networking";
 
+/* Layout imported, but some pinned items could not be found
+   LayoutFile.swift:148 */
+"Some items are not on this Mac" = "Some items are not on this Mac";
+
 /* Submenu choosing the order a folder stack lists its contents in
    AppDelegate.swift:793 */
 "Sort By" = "Sort By";
@@ -1194,6 +1220,10 @@
 /* Restore Defaults confirmation, under the question
    SettingsFile.swift:56 */
 "The bar’s appearance, contents and behaviour go back to how a new installation has them. The system Dock stays as it is, and so does what you have put on the bar — pinned items, names and icons." = "The bar’s appearance, contents and behaviour go back to how a new installation has them. The system Dock stays as it is, and so does what you have put on the bar — pinned items, names and icons.";
+
+/* Layout imported with some items missing; the names follow on their own lines
+   LayoutFile.swift:155 */
+"The rest of the layout is on the bar. These were left out:" = "The rest of the layout is on the bar. These were left out:";
 
 /* PreferencesView.swift:474 */
 "They sit after the applications and answer the same search." = "They sit after the applications and answer the same search.";
@@ -1388,6 +1418,10 @@
 /* VoiceOver: the app is open
    CellDescription.swift:42 */
 "running" = "running";
+
+/* Layout import refused. The file name is already quoted.
+   LayoutFile.swift:118 */
+"“%@” is not an Eskele layout file." = "“%@” is not an Eskele layout file.";
 
 /* Import refused. The file name is already quoted.
    SettingsFile.swift:81 */
