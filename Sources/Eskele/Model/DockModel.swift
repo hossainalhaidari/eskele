@@ -48,8 +48,9 @@ final class DockModel {
     /// Where the user has dragged an app's window buttons, by window id. Same bargain.
     private var windowOrder: [pid_t: [String]] = [:]
 
-    /// Supplied by the app delegate; returns true when it actually moved to another window.
-    var cycleWindows: ((pid_t) -> Bool)?
+    /// Supplied by the app delegate; steps that many windows on (or back, when negative) and
+    /// returns true when it actually moved to another window.
+    var cycleWindows: ((pid_t, Int) -> Bool)?
     var raiseWindow: ((WindowRef) -> Bool)?
     var closeWindow: ((WindowRef) -> Bool)?
     /// Whether the window lists mean anything. Without Accessibility every app reports zero
@@ -625,6 +626,26 @@ final class DockModel {
         bringForward(ref, copy: item.instance == nil ? nil : app)
     }
 
+    /// Scrolling on a cell: steps through the app's windows, `step` places on or back.
+    ///
+    /// An app in the background is brought forward first, on the window it was already on — the
+    /// step after that is the one that moves. Stepping straight away would skip the window you
+    /// were looking at before you ever saw it. A window button does the same for its app, starting
+    /// from its own window.
+    func stepWindows(_ item: DockItem, by step: Int) {
+        guard step != 0, let app = runningApp(for: item) else { return }
+        if app.isHidden { app.unhide() }
+        guard app.isActive else {
+            switch item.kind {
+            case .app(let ref): bringForward(ref, copy: item.instance == nil ? nil : app)
+            case .window: activate(item)
+            default: break
+            }
+            return
+        }
+        _ = cycleWindows?(app.processIdentifier, step)
+    }
+
     /// Whatever handles calendar links, which is the user's calendar application whether or not
     /// that is Apple's. Falling back to the bundled one only if nothing claims the scheme.
     private func openCalendar() {
@@ -652,7 +673,7 @@ final class DockModel {
             guard let app else { return }
             // Several windows open: step to the next one rather than hiding an app the user is
             // clearly still working in. One window: hide, as before.
-            if cycleWindows?(app.processIdentifier) != true { app.hide() }
+            if cycleWindows?(app.processIdentifier, 1) != true { app.hide() }
         }
     }
 

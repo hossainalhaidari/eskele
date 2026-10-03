@@ -1020,6 +1020,9 @@
 /* PreferencesView.swift:70 */
 "Scale" = "Scale";
 
+/* PreferencesView.swift:592 */
+"Scroll on an app to step through its windows" = "Scroll on an app to step through its windows";
+
 /* Search field placeholder, e.g. 'Search All Apps'
    LauncherPanelController.swift:102 */
 "Search %@" = "Search %@";
@@ -1256,6 +1259,9 @@
 /* Trade-off of the ⌃Esc shortcut choice
    Settings.swift:104 */
 "Unused by macOS, and the Start-menu shortcut on Windows." = "Unused by macOS, and the Start-menu shortcut on Windows.";
+
+/* PreferencesView.swift:593 */
+"Up for the next window, down for the one before. Needs Accessibility." = "Up for the next window, down for the one before. Needs Accessibility.";
 
 /* Menu item: an update was found and is waiting. The argument is its version
    StatusItemController.swift:113 */

@@ -32,6 +32,19 @@ which on macOS still leaves the application running — opens one, the way the r
 LaunchServices to open the application rather than merely activating it, which is what carries the
 reopen event.
 
+## Scrolling
+
+**Scroll on an application to step through its windows** — up for the next, down for the one
+before, in the order a click steps through them. Up means the way your hand moved, whichever way
+*Natural scrolling* is set. On a trackpad one swipe is one window however far it goes, and the
+coasting afterwards is ignored; on a mouse each notch of the wheel is one.
+
+An application in the background comes forward on the window it was on first, so you see where you
+are starting from; the next scroll moves. A window button steps through its own application's
+windows. Stepping needs [Accessibility](../permissions/); without it, the first scroll still brings
+the application forward. Turn it off with *Scroll on an app to step through its windows*, under
+*Settings ▸ Behaviour ▸ Displays*.
+
 ## Dragging
 
 | | |

@@ -187,3 +187,11 @@ private func decodeSettings(_ json: String) -> Settings? {
     settings.showStatusItem = true
     #expect(settings.hasSettingsRoute)
 }
+
+/// Scrolling on a cell is new behaviour rather than a change to an old one, so a file written before
+/// it existed gets it too; only an explicit false turns it off.
+@Test func scrollingStepsThroughWindowsUnlessTurnedOff() throws {
+    #expect(Settings().scrollStepsWindows)
+    #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).scrollStepsWindows)
+    #expect(try #require(decodeSettings(#"{"scrollStepsWindows": false}"#)).scrollStepsWindows == false)
+}

@@ -139,7 +139,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         model.setOffSpaceWindows(spaceWindows.countsByPID)
         model.setWindows(windowInfo.windowsByPID)
-        model.cycleWindows = { [weak self] pid in self?.windows.cycleWindow(pid: pid) ?? false }
+        model.cycleWindows = { [weak self] pid, offset in
+            self?.windows.cycleWindow(pid: pid, by: offset) ?? false
+        }
         model.raiseWindow = { [weak self] reference in self?.windows.raiseWindow(reference) ?? false }
         model.closeWindow = { [weak self] reference in self?.windows.closeWindow(reference) ?? false }
         model.hasWindowInformation = { [weak self] in self?.windows.isTrusted ?? false }
@@ -421,6 +423,11 @@ extension AppDelegate: BarContentViewDelegate {
 
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], on item: DockItem) {
         model.open(urls, with: item)
+    }
+
+    func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int) {
+        guard settings.scrollStepsWindows else { return }
+        model.stepWindows(item, by: step)
     }
 
     func barContent(_ view: BarContentView, springOpen item: DockItem) {

@@ -389,12 +389,14 @@ final class WindowService {
             .first { CGDisplayBounds($0).contains(point) }
     }
 
-    /// Raises the window after the focused one, wrapping around.
+    /// Raises the window after the focused one, wrapping around — or, with a negative `offset`,
+    /// the one before it.
     ///
     /// What clicking an already-frontmost app with several windows should do: step through them,
-    /// the way ⌘` does, rather than hiding an app the user is plainly still working in.
-    func cycleWindow(pid: pid_t) -> Bool {
-        if pid == WindowService.ownPID { return cycleOwn() }
+    /// the way ⌘` does, rather than hiding an app the user is plainly still working in. Scrolling on
+    /// the cell steps both ways.
+    func cycleWindow(pid: pid_t, by offset: Int = 1) -> Bool {
+        if pid == WindowService.ownPID { return cycleOwn(by: offset) }
         let list = listableWindows(for: pid)
         guard list.count > 1 else { return false }
 
@@ -411,7 +413,7 @@ final class WindowService {
         if let focused {
             let current = focused as! AXUIElement
             if let found = ordered.firstIndex(where: { CFEqual($0.element, current) }) {
-                index = (found + 1) % ordered.count
+                index = WindowService.stepped(from: found, by: offset, count: ordered.count)
             }
         }
         raise(ordered[index], pid: pid)
@@ -646,7 +648,12 @@ final class WindowService {
         window.makeKeyAndOrderFront(nil)
     }
 
-    private func cycleOwn() -> Bool {
+    /// `index` moved `offset` places through `count`, wrapping both ways.
+    nonisolated static func stepped(from index: Int, by offset: Int, count: Int) -> Int {
+        ((index + offset) % count + count) % count
+    }
+
+    private func cycleOwn(by offset: Int) -> Bool {
         let windows = sortedOwnWindows().filter { !$0.isMiniaturized }
         guard windows.count > 1 else { return false }
         let ordered = WindowService.cycleOrder(
@@ -655,7 +662,7 @@ final class WindowService {
 
         var index = 0
         if let found = ordered.firstIndex(where: \.isKeyWindow) {
-            index = (found + 1) % ordered.count
+            index = WindowService.stepped(from: found, by: offset, count: ordered.count)
         }
         activateOwn(ordered[index])
         return true

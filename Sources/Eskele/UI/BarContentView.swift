@@ -12,6 +12,8 @@ protocol BarContentViewDelegate: AnyObject {
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], on item: DockItem)
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int)
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint)
+    /// Scrolling on `item` asks for a step through its app's windows. See `ScrollStep`.
+    func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int)
     /// A file drag has rested on `item` for the spring-loading delay. See `SpringLoad`.
     func barContent(_ view: BarContentView, springOpen item: DockItem)
     /// A thumbnail of the window this cell stands for, or `nil` when there is none to be had —
@@ -1010,6 +1012,12 @@ extension BarContentView: ItemViewDelegate {
             }
         }
         delegate?.barContent(self, perform: action, on: view.item)
+    }
+
+    func itemView(_ view: ItemView, scrolledBy step: Int) {
+        // The label names the window that was under the pointer, which is about to change.
+        tooltip.hide()
+        delegate?.barContent(self, stepWindowsOf: view.item, by: step)
     }
 
     func itemViewMenu(for view: ItemView) -> NSMenu? {

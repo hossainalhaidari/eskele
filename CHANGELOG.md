@@ -21,6 +21,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Sort By** in a folder's context menu lists its stack by name, date added, date modified, date
   created or kind. Downloads starts out newest first, as in the system Dock; every other folder
   keeps sorting by name until you choose otherwise.
+- **Scroll on an application** to step through its windows: up for the next, down for the one
+  before. One swipe on a trackpad is one window, however far it goes. An application in the
+  background comes forward first, on the window it was on. Turn it off under *Behaviour ▸
+  Displays*.
 
 ## [0.2.0] - 2026-10-02
 

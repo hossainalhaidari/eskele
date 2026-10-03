@@ -589,6 +589,8 @@ struct BehaviourPane: View {
                     ForEach(ScreenMode.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 Toggle("Show a preview of the window when hovering", isOn: $store.settings.windowPreviews)
+                Toggle("Scroll on an app to step through its windows", isOn: $store.settings.scrollStepsWindows)
+                    .help("Up for the next window, down for the one before. Needs Accessibility.")
                 Picker("Order apps", selection: $store.settings.sortOrder) {
                     ForEach(SortOrder.allCases, id: \.self) { Text($0.title).tag($0) }
                 }

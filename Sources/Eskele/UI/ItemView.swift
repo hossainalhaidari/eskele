@@ -9,6 +9,7 @@ protocol ItemViewDelegate: AnyObject {
     func itemViewShouldBeginDrag(_ view: ItemView) -> Bool
     func itemViewDraggedOutOfBar(_ view: ItemView, at screenPoint: NSPoint)
     func itemView(_ view: ItemView, hoverChanged isHovered: Bool)
+    func itemView(_ view: ItemView, scrolledBy step: Int)
 }
 
 /// A single cell: icon, hover highlight, running indicator, drag source.
@@ -20,6 +21,7 @@ final class ItemView: NSView {
     var metrics: BarMetrics { didSet { needsDisplay = true } }
     var icon: NSImage? { didSet { needsDisplay = true } }
     var isDropTarget = false { didSet { needsDisplay = true } }
+    private var scrollStep = ScrollStep()
     /// This cell has room to draw the app's name beside its icon.
     var showsLabel = false { didSet { needsDisplay = true } }
     /// Compact bars reserve a strip for the running dot. Labelled bars show running state as a
@@ -716,6 +718,31 @@ final class ItemView: NSView {
     }
 
     /// The middle button is a click like any other, but AppKit routes it separately.
+    /// Steps through the app's windows; see `ScrollStep`. Only a running app or one of its windows
+    /// has anything to step through, so everything else passes the scroll on as before.
+    override func scrollWheel(with event: NSEvent) {
+        guard item.isTask else {
+            super.scrollWheel(with: event)
+            return
+        }
+        let phase: ScrollStep.Phase
+        if !event.momentumPhase.isEmpty {
+            phase = .momentum
+        } else if !event.hasPreciseScrollingDeltas || event.phase.isEmpty {
+            phase = .wheel
+        } else if event.phase.contains(.began) || event.phase.contains(.mayBegin) {
+            phase = .began
+        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            phase = .ended
+        } else {
+            phase = .changed
+        }
+        let delta = ScrollStep.physicalDelta(
+            event.scrollingDeltaY, invertedFromDevice: event.isDirectionInvertedFromDevice)
+        let step = scrollStep.step(delta: delta, phase: phase)
+        if step != 0 { delegate?.itemView(self, scrolledBy: step) }
+    }
+
     override func otherMouseDown(with event: NSEvent) {
         guard event.buttonNumber == ItemView.middleButton else { return }
         mouseDownPoint = event.locationInWindow

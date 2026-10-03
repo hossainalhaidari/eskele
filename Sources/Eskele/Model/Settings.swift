@@ -414,6 +414,12 @@ struct Settings: Codable, Equatable, Sendable {
     /// Without the permission it does nothing and the label stays text, which is what it has always
     /// been.
     var windowPreviews: Bool = false
+    /// Scrolling on an app's cell steps through its windows. See `ScrollStep`.
+    ///
+    /// On by default: the pointer has to be on the cell, so it does not fire by accident, and
+    /// nothing else on the bar listens to the wheel. It is a switch because a bar that auto-hides
+    /// can come up under a pointer that was scrolling something else.
+    var scrollStepsWindows: Bool = true
     /// Hold ⇧⌥ to read each app's processor and memory use off the bar.
     ///
     /// Off by default for the same reason the slot keys are: watching for a chord means a timer, and
@@ -580,6 +586,7 @@ struct Settings: Codable, Equatable, Sendable {
         if focusHotKey.refusal != nil { focusHotKey = d.focusHotKey }
         sortOrder = c.lenient(.sortOrder, d.sortOrder)
         windowPreviews = c.lenient(.windowPreviews, d.windowPreviews)
+        scrollStepsWindows = c.lenient(.scrollStepsWindows, d.scrollStepsWindows)
         activityOverlayEnabled = c.lenient(.activityOverlayEnabled, d.activityOverlayEnabled)
         fullScreenBehavior = c.lenient(.fullScreenBehavior, d.fullScreenBehavior)
         separateWindows = c.lenient(.separateWindows, d.separateWindows)
