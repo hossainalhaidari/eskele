@@ -145,7 +145,9 @@ final class DockModel {
                 )
                 resolved.append((entry, named(entry, DockItem(kind: .app(ref), isPinned: true))))
             case .folder:
-                resolved.append((entry, named(entry, DockItem(kind: .folder(url), isPinned: true))))
+                var item = named(entry, DockItem(kind: .folder(url), isPinned: true))
+                item.stackSort = entry.stackSort ?? StackSort.defaultOrder(for: url)
+                resolved.append((entry, item))
             case .file:
                 resolved.append((entry, named(entry, DockItem(kind: .file(url), isPinned: true))))
             case .separator:
@@ -419,6 +421,23 @@ final class DockModel {
         else { return }
 
         pinned[index].customName = value
+        persistence.saveLayout(pinned)
+        rebuild()
+    }
+
+    /// Changes how a pinned folder's stack is sorted.
+    ///
+    /// Picking the folder's default stores nothing, so the folder goes back to following it — the
+    /// same distinction `customName` keeps from `name`.
+    func setStackSort(_ item: DockItem, to sort: StackSort) {
+        guard case .folder(let url) = item.kind else { return }
+        let identity = persistedIdentity(for: item)
+        let value = sort == StackSort.defaultOrder(for: url) ? nil : sort
+        guard let index = pinned.firstIndex(where: { $0.identity == identity }),
+              pinned[index].stackSort != value
+        else { return }
+
+        pinned[index].stackSort = value
         persistence.saveLayout(pinned)
         rebuild()
     }

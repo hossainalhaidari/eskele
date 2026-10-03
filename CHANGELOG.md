@@ -12,6 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Sort By** in a folder's context menu lists its stack by name, date added, date modified, date
+  created or kind. Downloads starts out newest first, as in the system Dock; every other folder
+  keeps sorting by name until you choose otherwise.
+
 ## [0.2.0] - 2026-10-02
 
 ### Added

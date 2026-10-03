@@ -18,6 +18,9 @@ struct PersistedItem: Codable, Equatable {
     /// called when it was pinned, and keeping the two apart is what lets an app that is renamed on
     /// disk follow its new name unless somebody has said otherwise.
     var customName: String?
+    /// How a folder's stack is sorted, when the user has picked something other than
+    /// `StackSort.defaultOrder` — nil otherwise, so a folder left alone keeps following its default.
+    var stackSort: StackSort?
     var token: String?
 
     static func separator() -> PersistedItem {

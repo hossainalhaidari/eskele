@@ -11,21 +11,23 @@ final class StackMenuController: NSObject, NSMenuDelegate {
     private static let maximumEntries = 40
     private static let iconSize: CGFloat = 16
 
-    private var directories: [ObjectIdentifier: URL] = [:]
+    private var directories: [ObjectIdentifier: (url: URL, sort: StackSort)] = [:]
 
-    func menu(for directory: URL) -> NSMenu {
+    /// - Parameter sort: how to list `directory`, and every folder opened from inside it — a
+    ///   subfolder of Downloads is read the way Downloads is.
+    func menu(for directory: URL, sort: StackSort) -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
-        directories[ObjectIdentifier(menu)] = directory
+        directories[ObjectIdentifier(menu)] = (directory, sort)
         return menu
     }
 
     // Submenus are filled in on demand, so opening a stack never walks the whole tree.
     func menuNeedsUpdate(_ menu: NSMenu) {
-        guard let directory = directories[ObjectIdentifier(menu)] else { return }
+        guard let (directory, sort) = directories[ObjectIdentifier(menu)] else { return }
         menu.removeAllItems()
 
-        let entries = contents(of: directory)
+        let entries = contents(of: directory, sorted: sort)
         if entries.isEmpty {
             let empty = NSMenuItem(
                 title: String(localized: "Empty", comment: "Greyed-out menu item: this folder has nothing in it"),
@@ -41,7 +43,7 @@ final class StackMenuController: NSObject, NSMenuDelegate {
             item.image = icon(for: url)
 
             if url.hasDirectoryPath && url.pathExtension != "app" {
-                let submenu = self.menu(for: url)
+                let submenu = self.menu(for: url, sort: sort)
                 submenu.title = url.lastPathComponent
                 item.submenu = submenu
             }
@@ -65,20 +67,27 @@ final class StackMenuController: NSObject, NSMenuDelegate {
         menu.addItem(reveal)
     }
 
-    private func contents(of directory: URL) -> [URL] {
-        let keys: [URLResourceKey] = [.isDirectoryKey, .localizedNameKey]
+    private func contents(of directory: URL, sorted sort: StackSort) -> [URL] {
+        let keys: [URLResourceKey] = [
+            .addedToDirectoryDateKey, .contentModificationDateKey, .creationDateKey,
+            .localizedTypeDescriptionKey,
+        ]
         let urls = (try? FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: keys,
             options: [.skipsHiddenFiles]
         )) ?? []
-        // Folders first, then case-insensitive by name — the order Finder shows by default.
-        return urls.sorted { lhs, rhs in
-            let lhsDirectory = lhs.hasDirectoryPath && lhs.pathExtension != "app"
-            let rhsDirectory = rhs.hasDirectoryPath && rhs.pathExtension != "app"
-            if lhsDirectory != rhsDirectory { return lhsDirectory }
-            return lhs.lastPathComponent.localizedStandardCompare(rhs.lastPathComponent) == .orderedAscending
+        let entries = urls.map { url in
+            let values = try? url.resourceValues(forKeys: Set(keys))
+            return StackSort.Entry(
+                url: url,
+                isFolder: url.hasDirectoryPath && url.pathExtension != "app",
+                added: values?.addedToDirectoryDate,
+                modified: values?.contentModificationDate,
+                created: values?.creationDate,
+                kind: values?.localizedTypeDescription)
         }
+        return sort.ordered(entries).map(\.url)
     }
 
     private func icon(for url: URL) -> NSImage {

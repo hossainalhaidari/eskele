@@ -299,6 +299,18 @@
    Settings.swift:256 */
 "Dark" = "Dark";
 
+/* Sort By choice for a folder stack
+   StackSort.swift:36 */
+"Date Added" = "Date Added";
+
+/* Sort By choice for a folder stack
+   StackSort.swift:38 */
+"Date Created" = "Date Created";
+
+/* Sort By choice for a folder stack
+   StackSort.swift:37 */
+"Date Modified" = "Date Modified";
+
 /* Clock shows the weekday and the time
    ClockContent.swift:12 */
 "Day and Time" = "Day and Time";
@@ -626,6 +638,10 @@
 /* PreferencesView.swift:531 */
 "Keys" = "Keys";
 
+/* Sort By choice for a folder stack
+   StackSort.swift:39 */
+"Kind" = "Kind";
+
 /* Footer under the update settings. The argument is a date and time
    PreferencesView.swift:912 */
 "Last checked %@." = "Last checked %@.";
@@ -724,6 +740,10 @@
 /* Footer under the media progress toggle
    PreferencesView.swift:427 */
 "Music, Spotify and VLC are asked directly, which raises each one's Automation prompt the first time. There is no longer any other way: the private interface the system uses has needed an entitlement since macOS 15.4 and tells an ordinary app nothing. Refuse a prompt and that player simply shows no bar." = "Music, Spotify and VLC are asked directly, which raises each one's Automation prompt the first time. There is no longer any other way: the private interface the system uses has needed an entitlement since macOS 15.4 and tells an ordinary app nothing. Refuse a prompt and that player simply shows no bar.";
+
+/* Sort By choice for a folder stack
+   StackSort.swift:35 */
+"Name" = "Name";
 
 /* App category
    AppCategory.swift:74 */
@@ -1112,6 +1132,10 @@
 /* App category
    AppCategory.swift:80 */
 "Social Networking" = "Social Networking";
+
+/* Submenu choosing the order a folder stack lists its contents in
+   AppDelegate.swift:793 */
+"Sort By" = "Sort By";
 
 /* About window: link to Eskele's repository
    AuxiliaryWindows.swift:78 */

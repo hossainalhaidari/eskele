@@ -75,6 +75,9 @@ struct DockItem: Identifiable, Equatable {
     /// showing the window's title. The app's own name reaches those through `AppRef.name`, which is
     /// built from the same field.
     var customName: String?
+    /// How a folder's stack lists its contents, from `PersistedItem.stackSort` or the folder's
+    /// default. Meaningless for anything but a folder.
+    var stackSort: StackSort = .name
     /// The displays this task's windows are on, for `ScreenMode.perDisplay`.
     ///
     /// Empty means "every bar": a pin, the Trash and the clock belong on all of them, and so does a

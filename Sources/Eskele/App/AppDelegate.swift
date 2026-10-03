@@ -396,7 +396,7 @@ extension AppDelegate: BarContentViewDelegate {
 
     func barContent(_ view: BarContentView, stackMenuFor item: DockItem) -> NSMenu? {
         guard case .folder(let url) = item.kind else { return nil }
-        return stacks.menu(for: url)
+        return stacks.menu(for: url, sort: item.stackSort)
     }
 
     func barContent(
@@ -561,8 +561,9 @@ extension AppDelegate: BarContentViewDelegate {
             let stack = NSMenuItem(
                 title: String(localized: "Contents", comment: "Submenu listing what is inside a pinned folder"),
                 action: nil, keyEquivalent: "")
-            stack.submenu = stacks.menu(for: url)
+            stack.submenu = stacks.menu(for: url, sort: item.stackSort)
             menu.addItem(stack)
+            menu.addItem(stackSortItem(for: item))
             menu.addItem(action(
                 String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
                 item, #selector(revealInFinder(_:))))
@@ -772,6 +773,29 @@ extension AppDelegate: BarContentViewDelegate {
 
     @objc private func quitEskele() {
         NSApp.terminate(nil)
+    }
+
+    /// *Sort By*, with the folder's current order ticked — as the Dock offers it on a stack.
+    private func stackSortItem(for item: DockItem) -> NSMenuItem {
+        let submenu = NSMenu()
+        submenu.autoenablesItems = false
+        for sort in StackSort.allCases {
+            let choice = action(sort.title, item, #selector(selectStackSort(_:)), state: sort == item.stackSort)
+            // The item's id is already the represented object, so the order rides on the tag.
+            choice.tag = StackSort.allCases.firstIndex(of: sort) ?? 0
+            submenu.addItem(choice)
+        }
+        let menuItem = NSMenuItem(
+            title: String(localized: "Sort By", comment: "Submenu choosing the order a folder stack lists its contents in"),
+            action: nil, keyEquivalent: "")
+        menuItem.submenu = submenu
+        return menuItem
+    }
+
+    @objc private func selectStackSort(_ sender: NSMenuItem) {
+        guard let item = item(from: sender),
+              StackSort.allCases.indices.contains(sender.tag) else { return }
+        model.setStackSort(item, to: StackSort.allCases[sender.tag])
     }
 
     private func addRenameItems(to menu: NSMenu, for item: DockItem) {
