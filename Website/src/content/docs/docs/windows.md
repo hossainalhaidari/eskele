@@ -36,6 +36,26 @@ Right-click a running application to list its windows. Minimised ones are indent
 Close is disabled for a window on another Space that was reached through a menu item, because a menu
 item has no close button to press.
 
+## Recent documents
+
+Right-click an application for **Open Recent**: the documents it opened last, and picking one has
+that application open it. Eskele can read them from two places.
+
+**The lists macOS keeps for the Dock** are the complete answer: every application, running or not,
+with each document's folder shown on hover. They are behind Full Disk Access, so Eskele reads
+them only once you turn on *Read the lists macOS keeps for the Dock* under *Settings ▸ Contents ▸
+Recent Documents* and add Eskele under *System Settings ▸ Privacy & Security ▸ Full Disk Access*.
+Full Disk Access lets Eskele read any file you can; it uses it for these lists and for an exact
+count of the Trash, nothing else.
+
+**The application's own *File ▸ Open Recent* menu** is what Eskele reads otherwise. It needs
+Accessibility, like the window list, and the application has to be running.
+
+With the setting on, an application without a list of its own there still falls back to its menu.
+
+If *Recent documents, applications and servers* is set to None under *System Settings ▸ Desktop &
+Dock*, macOS keeps no recent documents for any application, and Open Recent does not appear.
+
 ## A button per window
 
 In full-width labelled mode each window gets **its own button, titled with the window's own title** —

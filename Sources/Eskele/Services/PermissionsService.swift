@@ -63,6 +63,16 @@ enum PermissionsService {
         CGRequestScreenCaptureAccess()
     }
 
+    /// Full Disk Access cannot be asked for — there is no prompt, only the list in System Settings —
+    /// and nothing reports it, so this is whether a directory behind it can be listed.
+    static var fullDiskAccessStatus: Status {
+        RecentDocumentLists.isReadable ? .granted : .denied
+    }
+
+    static func openFullDiskAccessSettings() {
+        open("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+    }
+
     static func openScreenRecordingSettings() {
         open("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
     }

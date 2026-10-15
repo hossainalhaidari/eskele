@@ -142,6 +142,20 @@ if CommandLine.arguments.contains("--diagnose-badges") {
     exit(0)
 }
 
+/// What each running app's *Open Recent* menu holds, as the context menu would read it.
+///
+/// Like `--diagnose-windows`, this must be run through LaunchServices to mean anything: a process
+/// started from a shell reports the terminal's Accessibility permission rather than Eskele's.
+///
+///     open -n <Eskele.app> --args --diagnose-recents
+if CommandLine.arguments.contains("--diagnose-recents") {
+    let report = RecentDocumentsDiagnostics.report(
+        service: RecentDocumentsService(), settings: Persistence().loadSettings())
+    print(report, terminator: "")
+    Diagnostics.writeReport(report, to: Diagnostics.recentsReportPath)
+    exit(0)
+}
+
 let application = NSApplication.shared
 let delegate = AppDelegate()
 application.delegate = delegate

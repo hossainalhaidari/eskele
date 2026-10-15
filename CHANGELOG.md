@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Open Recent** in an application's context menu lists the documents it opened last, and picking
+  one has that application open it. By default the list comes from the application's own *File ▸
+  Open Recent* menu, which needs Accessibility and the application running. Turn on *Read the lists
+  macOS keeps for the Dock*, under *Contents ▸ Recent Documents*, and grant Full Disk Access for
+  every application's list, running or not — the same lists the system Dock reads. With
+  *Recent documents* set to None in *Desktop & Dock*, macOS keeps no lists and there is nothing to
+  show.
+
 ### Changed
 
 - **Dropping files on a pinned folder files them there**, as the system Dock does: moved from the

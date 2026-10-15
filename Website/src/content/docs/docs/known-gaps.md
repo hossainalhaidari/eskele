@@ -53,6 +53,11 @@ nothing in the process tree connects them. macOS knows the answer and only expos
 metadata. It agrees with Finder on APFS; on a volume laid out differently Eskele reports nothing
 rather than guessing.
 
+**Complete recent documents cost Full Disk Access.** The Dock reads each application's recent
+documents from files that macOS keeps behind it, and the public interface to the same lists returns
+nothing. Without it, Eskele reads the application's own *Open Recent* menu instead, so an application
+that is not running has no list. See [Recent documents](../windows/#recent-documents).
+
 **There is no *Assign To* desktop.** The Dock can tie an application to one desktop, or to all of
 them; that setting belongs to the Dock and the window server, and nothing public lets another app
 set it. *Open at Login*, the other half of the Dock's Options menu, is in Eskele's.

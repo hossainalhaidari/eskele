@@ -22,6 +22,11 @@ enum Diagnostics {
         SupportDirectory.url.appendingPathComponent("diagnose-badges.txt").path
     }
 
+    /// Where `--diagnose-recents` leaves its report, for the same reason.
+    static var recentsReportPath: String {
+        SupportDirectory.url.appendingPathComponent("diagnose-recents.txt").path
+    }
+
     static func writeReport(_ report: String, to path: String? = nil) {
         let url = URL(fileURLWithPath: path ?? reportPath)
         try? FileManager.default.createDirectory(

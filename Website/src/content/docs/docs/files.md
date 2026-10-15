@@ -22,6 +22,7 @@ Plus the diagnostics, written on demand:
   diagnose-windows.txt   --diagnose-windows
   diagnose-badges.txt    --diagnose-badges
   diagnose-progress.txt  --diagnose-progress
+  diagnose-recents.txt   --diagnose-recents
 ```
 
 ## settings.json

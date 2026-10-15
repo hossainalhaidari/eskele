@@ -250,6 +250,7 @@ struct ContentsPane: View {
     weak var actions: (any PreferencesActions)?
 
     @State private var accessibility = PermissionsService.accessibilityStatus
+    @State private var fullDiskAccess = PermissionsService.fullDiskAccessStatus
 
     private var settings: Settings { store.settings }
 
@@ -296,6 +297,23 @@ struct ContentsPane: View {
                     settings.showAccessoryApps ? accessoryNote : nil,
                     settings.onlyMarkAppsWithWindows ? unmarkedNote : nil,
                     pinGroupNote)
+            }
+
+            Section {
+                Toggle("Read the lists macOS keeps for the Dock", isOn: $store.settings.recentDocumentLists)
+                if settings.recentDocumentLists, fullDiskAccess != .granted {
+                    PermissionPrompt(message: String(
+                        localized: "Needs Full Disk Access.",
+                        comment: "Why reading the Dock's recent-document lists needs a permission that isn't granted")
+                    ) {
+                        PermissionsService.openFullDiskAccessSettings()
+                        fullDiskAccess = PermissionsService.fullDiskAccessStatus
+                    }
+                }
+            } header: {
+                Text("Recent Documents")
+            } footer: {
+                FooterText(recentDocumentsNote)
             }
 
             Section {
@@ -368,8 +386,20 @@ struct ContentsPane: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { accessibility = PermissionsService.accessibilityStatus }
+        .onAppear {
+            accessibility = PermissionsService.accessibilityStatus
+            fullDiskAccess = PermissionsService.fullDiskAccessStatus
+        }
     }
+
+    private let recentDocumentsNote = String(
+        localized: """
+            Right-click an app for Open Recent. Without this, Eskele reads the app's own File ▸ Open \
+            Recent menu, which needs the app running and Accessibility. The Dock's lists have every \
+            app, running or not, but macOS keeps them behind Full Disk Access — which lets Eskele \
+            read any file you can. Nothing else in Eskele needs it except an exact count of the Trash.
+            """,
+        comment: "Footer under the recent documents toggle")
 
     private var clockNote: String {
         if settings.clockStyle == .analog {
@@ -823,6 +853,7 @@ struct GeneralPane: View {
     @State private var automation = PermissionsService.automationStatus()
     @State private var accessibility = PermissionsService.accessibilityStatus
     @State private var screenRecording = PermissionsService.screenRecordingStatus
+    @State private var fullDiskAccess = PermissionsService.fullDiskAccessStatus
 
     private var settings: Settings { store.settings }
 
@@ -886,6 +917,9 @@ struct GeneralPane: View {
                         PermissionsService.requestScreenRecording()
                         PermissionsService.openScreenRecordingSettings()
                     })
+                permissionRow(
+                    "Full Disk Access", "Needed only for full recent-document lists and an exact Trash count.",
+                    fullDiskAccess, PermissionsService.openFullDiskAccessSettings)
             }
 
             Section {
@@ -980,6 +1014,7 @@ struct GeneralPane: View {
         automation = PermissionsService.automationStatus()
         accessibility = PermissionsService.accessibilityStatus
         screenRecording = PermissionsService.screenRecordingStatus
+        fullDiskAccess = PermissionsService.fullDiskAccessStatus
     }
 }
 

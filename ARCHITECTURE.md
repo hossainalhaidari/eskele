@@ -1792,6 +1792,71 @@ The first row is the answer to "does App Nap do this already?" — Eskele does n
 a sleeping display leaves none of its windows visible, but the old build carried on at the same rate
 regardless. So the drop is the gate's. Not measured: battery life, and Low Power Mode's stretch.
 
+### 5.30 Recent documents
+
+The Dock's context menu starts with the app's recent documents. It reads them from per-app shared
+file lists, `~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle id>.sfl4`,
+and that directory is behind Full Disk Access — measured on macOS 27, `ls` on it is refused even
+from outside any sandbox. The other routes were measured too and are dead: `LSSharedFileList`'s
+`com.apple.LSSharedFileList.RecentDocuments` list, reached with `dlsym` as `AppLoginItems` reaches
+the login items, returns no entries, and Spotlight's `kMDItemLastUsedDate` turned up one file for a
+whole week of work, since only a LaunchServices open sets it.
+
+What Accessibility can read is the app's own menu bar, and AppKit keeps the same per-app list in
+*File ▸ Open Recent*. `RecentDocumentsService` finds that item by title — AppKit ships it in its
+`MenuCommands` table, so `Bundle(for: NSApplication.self)` gives it in the language in use, and the
+English title covers apps that never localised — and only in the third menu, File: every title read
+is a round trip into the app while a context menu is opening, and searching four menus cost 17–41 ms
+on apps with no such item. `RecentDocuments` picks the documents out of the submenu: the titled items
+before the last separator (Accessibility presents a separator as an untitled item), less anything
+with a key equivalent or a trailing ellipsis, which is how VS Code's *Reopen Closed Editor* and
+*More…* stay out. An entry is a title and the element to press; activating the app and pressing a
+beat later is the Window-menu route of §5.16. No URL is visible, so no icon.
+
+VS Code listed 20 entries in 21 ms. TextEdit and Preview showed *Clear Menu* alone, even after a
+file had been opened in each — first taken as AppKit filling the menu only in `menuNeedsUpdate`, but
+their lists turned out to keep a limit of zero (below), so they had nothing to show. With the limit
+back at ten, TextEdit's menu read all three files opened in it without ever having been shown: an
+AppKit app's menu is readable as it stands. The submenu is offered only when there is something in
+it, so an app whose list is empty or unreadable simply has none.
+
+**The complete route is opt-in.** With `Settings.recentDocumentLists` on and Full Disk Access
+granted, `RecentDocumentLists` reads the list named after the app's bundle identifier and the menu
+is read only for an app without one. Measured on macOS 27: the name is the identifier in lower case
+and the extension `.sfl4`, with `.sfl3` left on lists no app has written since an older macOS, so the
+highest `.sfl<n>` is taken and the match ignores case. The
+lists are keyed archives whose classes are private and have changed between macOS versions, so
+`SharedFileList` never unarchives them — an unarchiver refuses any class it does not know, and one
+renamed class would empty every list. It reads the archive as a plist and keeps each object in
+`$objects` that is data starting with `book`, the magic every bookmark carries. A keyed archiver adds
+an object to `$objects` when it first encodes it, depth first, so the bookmarks come out in list
+order. They resolve with `.withoutUI` and `.withoutMounting` — this runs while a menu opens, and a
+document on a disconnected server should drop out rather than ask for a password — and the gone,
+the repeated and anything past twenty are left out. Each entry is the file's name, with its folder as
+the tooltip — an icon set on the item was not drawn in this menu on macOS 27, and was dropped rather
+than chased — and opens with the app whose menu it is in, not whatever owns the file type.
+
+Full Disk Access has no status call and never prompts, so `PermissionsService.fullDiskAccessStatus`
+is whether `com.apple.sharedfilelist` can be listed. It is off by default and asked for in words in
+Settings: it lets Eskele read any file the user can, and the setting's footer says so. The Trash
+count (§5.7) already became exact with it; the General pane now lists the permission for both.
+
+**What was measured with the permission.** The reader is right about the format: Finder's sidebar
+list, `FavoriteItems.sfl4`, gave six bookmarks, all resolving, in the sidebar's order. But every
+per-app list on the development Mac is empty. Each list's properties carry
+`com.apple.LSSharedFileList.MaxAmount`, the *Recent documents* limit from Desktop & Dock: the
+document apps' lists — TextEdit, Preview, Pages, Xcode, VS Code and ten more — said 0 and the rest
+10, and opening a file in TextEdit with the setting at None rewrote its list, still empty, the same
+second. With the setting at None macOS keeps nothing, and Eskele has nothing to show, which is the
+right answer. With it at ten, three files opened in TextEdit one after another came back as three
+bookmarks, all resolving, newest first — the order the app's menu shows too. An app's list takes the
+new limit only when macOS next rewrites it, which is when that app next opens a document.
+
+`open -n <Eskele.app> --args --diagnose-recents` prints whether the permission and the setting are
+on; the list file names, each list's limit, the sidebar check and the archive structure of the
+largest list; and per running app its list with bookmarks found against documents resolved, where
+the menu was found, every item in it, and how long each read took.
+
 ### 5.31 Dropping on a folder
 
 A drop on a folder cell files the dragged items in it, by Finder's rules as the Dock follows them:

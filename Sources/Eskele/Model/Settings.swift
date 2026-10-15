@@ -420,6 +420,12 @@ struct Settings: Codable, Equatable, Sendable {
     /// nothing else on the bar listens to the wheel. It is a switch because a bar that auto-hides
     /// can come up under a pointer that was scrolling something else.
     var scrollStepsWindows: Bool = true
+    /// Read each app's recent documents from the lists macOS keeps for the Dock, rather than from
+    /// the app's own *Open Recent* menu. See `RecentDocumentLists`.
+    ///
+    /// Off by default because those lists are behind Full Disk Access, the broadest permission
+    /// macOS has. Without it, or with this off, the menu is read instead, which covers fewer apps.
+    var recentDocumentLists: Bool = false
     /// Hold ⇧⌥ to read each app's processor and memory use off the bar.
     ///
     /// Off by default for the same reason the slot keys are: watching for a chord means a timer, and
@@ -587,6 +593,7 @@ struct Settings: Codable, Equatable, Sendable {
         sortOrder = c.lenient(.sortOrder, d.sortOrder)
         windowPreviews = c.lenient(.windowPreviews, d.windowPreviews)
         scrollStepsWindows = c.lenient(.scrollStepsWindows, d.scrollStepsWindows)
+        recentDocumentLists = c.lenient(.recentDocumentLists, d.recentDocumentLists)
         activityOverlayEnabled = c.lenient(.activityOverlayEnabled, d.activityOverlayEnabled)
         fullScreenBehavior = c.lenient(.fullScreenBehavior, d.fullScreenBehavior)
         separateWindows = c.lenient(.separateWindows, d.separateWindows)

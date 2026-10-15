@@ -7,18 +7,18 @@ description: What each macOS permission buys in Eskele, how to check what it act
 launching, reordering, the Trash cell, auto-hide, the reveal and slot hot keys, the activity overlay,
 folder progress, the clock and hiding the system Dock all work with nothing granted.
 
-Four optional groups of features ask for something.
+Five optional groups of features ask for something.
 
 ## What costs what
 
 | Permission | What it buys |
 |---|---|
-| **Accessibility** | Window lists and counts, per-window buttons, full-screen detection, per-window indicators, "not responding", [real Dock badges](../badges/), per-display window filtering, the attention glow, and the right-<kbd>⌘</kbd> tap if you choose it as the Apps Menu key |
+| **Accessibility** | Window lists and counts, per-window buttons, full-screen detection, per-window indicators, "not responding", [real Dock badges](../badges/), per-display window filtering, the attention glow, [recent documents](../windows/#recent-documents) read from an app's own menu, and the right-<kbd>⌘</kbd> tap if you choose it as the Apps Menu key |
 | **Screen Recording** | [Window previews](../windows/#window-previews) on hover. The only feature that asks for it, and it is off by default |
 | **Automation → Finder** | Emptying the Trash. No public API exists |
 | **Automation → loginwindow** | Sleep, Log Out, Restart and Shut Down. No public API exists, and the shell equivalents need root |
 | **Automation → each player** | [Media progress](../progress/#media-progress) for Music, Spotify and VLC — one prompt per player, the first time each is asked |
-| **Full Disk Access** *(optional)* | An exact Trash count with instant updates, instead of an estimate from directory metadata refreshed every two seconds |
+| **Full Disk Access** *(optional)* | An exact Trash count with instant updates, instead of an estimate from directory metadata refreshed every two seconds — and, once you turn on *Read the lists macOS keeps for the Dock*, [every app's recent documents](../windows/#recent-documents), running or not |
 
 Without a permission, the feature that needs it simply does nothing — it does not fail loudly and it
 does not degrade anything else. Without Accessibility every running app shows a single dash and one

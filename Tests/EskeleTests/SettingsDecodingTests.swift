@@ -195,3 +195,10 @@ private func decodeSettings(_ json: String) -> Settings? {
     #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).scrollStepsWindows)
     #expect(try #require(decodeSettings(#"{"scrollStepsWindows": false}"#)).scrollStepsWindows == false)
 }
+
+/// Full Disk Access is the broadest permission macOS has, so nothing asks for it until told to.
+@Test func theDockListsAreOffUntilAskedFor() throws {
+    #expect(!Settings().recentDocumentLists)
+    #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).recentDocumentLists == false)
+    #expect(try #require(decodeSettings(#"{"recentDocumentLists": true}"#)).recentDocumentLists)
+}

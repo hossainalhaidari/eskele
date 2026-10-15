@@ -22,8 +22,9 @@ cat ~/Library/Application\ Support/Eskele/diagnose.txt
 | `--diagnose-windows` | What Accessibility says about every running app: windows, subroles, which are full-screen, which are on another Space and how they were reached, which are dialogs, which apps would be flagged as needing attention, which displays are in a full-screen space |
 | `--diagnose-badges` | Every Dock tile, the raw `AXStatusLabel` on each, the bundle ID it resolved to, and which cells a command is overriding |
 | `--diagnose-progress` | What each media player answered, and whether Automation was refused |
+| `--diagnose-recents` | Whether Full Disk Access and the setting are on; with the permission, every list file, the limit each keeps (0 when *Recent documents* is set to None) and a check that the format still reads; then for each running app its list, how many bookmarks it holds and how many still resolve, where it keeps its *Open Recent* menu and every item in it, and how long each read took |
 
-All four are **read-only**. `--diagnose-windows` changes nothing about the applications it inspects.
+All five are **read-only**. `--diagnose-windows` changes nothing about the applications it inspects.
 
 *Settings ▸ General* shows the same permission status as `--diagnose`, without the terminal.
 

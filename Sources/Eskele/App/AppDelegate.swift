@@ -26,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var recents: RecentAppsService!
     private var launcher: LauncherPanelController!
     private let windows = WindowService()
+    private let recentDocuments = RecentDocumentsService()
     private let previews = WindowPreviewService()
     private let services = ServicesProvider()
     private var fullScreen: FullScreenMonitor!
@@ -626,6 +627,7 @@ extension AppDelegate: BarContentViewDelegate {
                 action: nil, keyEquivalent: "")
             optionsItem.submenu = options
             menu.addItem(optionsItem)
+            if let recent = recentDocumentsItem(for: item) { menu.addItem(recent) }
 
             if item.isRunning {
                 addWindowSection(to: menu, for: item)
@@ -825,6 +827,69 @@ extension AppDelegate: BarContentViewDelegate {
             entry.indentationLevel = window.isMinimized ? 1 : 0
             menu.addItem(entry)
         }
+    }
+
+    /// The app's recent documents, or nil when it has none we can read.
+    ///
+    /// From the lists macOS keeps for the Dock when the setting asks and Full Disk Access allows —
+    /// those have every app, running or not. Names only: an icon set on the item was not drawn in
+    /// this menu on macOS 27, and the folder on hover says what an icon would. Otherwise from the
+    /// app's own *Open Recent* menu, which needs it running and Accessibility. See §5.30.
+    private func recentDocumentsItem(for item: DockItem) -> NSMenuItem? {
+        guard case .app(let ref) = item.kind else { return nil }
+        let submenu = NSMenu()
+        if settings.recentDocumentLists,
+           let urls = RecentDocumentLists.documents(forBundleID: ref.bundleID), !urls.isEmpty {
+            for url in urls {
+                let entry = NSMenuItem(
+                    title: FileManager.default.displayName(atPath: url.path),
+                    action: #selector(openRecentFile(_:)), keyEquivalent: "")
+                entry.target = self
+                entry.representedObject = RecentFile(url: url, app: ref.url)
+                entry.toolTip = url.deletingLastPathComponent().path
+                submenu.addItem(entry)
+            }
+        } else if let pid = item.pid {
+            for document in recentDocuments.documents(for: pid) {
+                let entry = NSMenuItem(
+                    title: document.title, action: #selector(openRecentDocument(_:)), keyEquivalent: "")
+                entry.target = self
+                entry.representedObject = RecentChoice(pid: pid, document: document)
+                submenu.addItem(entry)
+            }
+        }
+        guard !submenu.items.isEmpty else { return nil }
+        let recent = NSMenuItem(
+            title: String(localized: "Open Recent", comment: "Submenu listing the documents this app opened recently"),
+            action: nil, keyEquivalent: "")
+        recent.submenu = submenu
+        return recent
+    }
+
+    @objc private func openRecentDocument(_ sender: NSMenuItem) {
+        guard let choice = sender.representedObject as? RecentChoice else { return }
+        recentDocuments.open(choice.document, pid: choice.pid)
+    }
+
+    /// Opened with the app whose menu it was picked from, not whatever owns the file type — a
+    /// Markdown file in VS Code's list goes back to VS Code.
+    @objc private func openRecentFile(_ sender: NSMenuItem) {
+        guard let file = sender.representedObject as? RecentFile else { return }
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.open([file.url], withApplicationAt: file.app, configuration: configuration)
+    }
+
+    private final class RecentChoice: NSObject {
+        let pid: pid_t
+        let document: RecentDocumentsService.Document
+        init(pid: pid_t, document: RecentDocumentsService.Document) { self.pid = pid; self.document = document }
+    }
+
+    private final class RecentFile: NSObject {
+        let url: URL
+        let app: URL
+        init(url: URL, app: URL) { self.url = url; self.app = app }
     }
 
     private final class WindowChoice: NSObject {

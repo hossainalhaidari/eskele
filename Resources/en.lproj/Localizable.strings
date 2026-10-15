@@ -799,6 +799,10 @@
    PreferencesView.swift:672 */
 "Needs Accessibility. Until it is granted every display shows the same bar, which is what All Displays does." = "Needs Accessibility. Until it is granted every display shows the same bar, which is what All Displays does.";
 
+/* Why reading the Dock's recent-document lists needs a permission that isn't granted
+   PreferencesView.swift */
+"Needs Full Disk Access." = "Needs Full Disk Access.";
+
 /* Footer under the window previews toggle
    PreferencesView.swift:705 */
 "Needs Screen Recording. Until it is granted the hover label stays as it is — the window's title, in text." = "Needs Screen Recording. Until it is granted the hover label stays as it is — the window's title, in text.";
@@ -907,6 +911,10 @@
    AppDelegate.swift:946 */
 "Open Privacy Settings" = "Open Privacy Settings";
 
+/* Submenu listing the documents this app opened recently
+   AppDelegate.swift */
+"Open Recent" = "Open Recent";
+
 /* Menu item: open the Trash in Finder
    AppDelegate.swift:592 */
 "Open Trash" = "Open Trash";
@@ -1002,9 +1010,15 @@
    StatusItemController.swift:78 */
 "Reach Settings from the gear in the Apps Menu. Bring the icon back from there." = "Reach Settings from the gear in the Apps Menu. Bring the icon back from there.";
 
+/* PreferencesView.swift */
+"Read the lists macOS keeps for the Dock" = "Read the lists macOS keeps for the Dock";
+
 /* Apps Menu contents
    Settings.swift:42 */
 "Recent Apps" = "Recent Apps";
+
+/* PreferencesView.swift */
+"Recent Documents" = "Recent Documents";
 
 /* Shortcut recorder with nothing recorded
    ShortcutRecorder.swift:165 */
@@ -1091,6 +1105,10 @@
 /* Screen edge the bar sits on
    Settings.swift:14, Settings.swift:173 */
 "Right" = "Right";
+
+/* Footer under the recent documents toggle
+   PreferencesView.swift */
+"Right-click an app for Open Recent. Without this, Eskele reads the app's own File ▸ Open Recent menu, which needs the app running and Accessibility. The Dock's lists have every app, running or not, but macOS keeps them behind Full Disk Access — which lets Eskele read any file you can. Nothing else in Eskele needs it except an exact count of the Trash." = "Right-click an app for Open Recent. Without this, Eskele reads the app's own File ▸ Open Recent menu, which needs the app running and Accessibility. The Dock's lists have every app, running or not, but macOS keeps them behind Full Disk Access — which lets Eskele read any file you can. Nothing else in Eskele needs it except an exact count of the Trash.";
 
 /* PreferencesView.swift:98 */
 "Rows" = "Rows";
