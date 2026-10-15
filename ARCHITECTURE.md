@@ -1792,6 +1792,23 @@ The first row is the answer to "does App Nap do this already?" — Eskele does n
 a sleeping display leaves none of its windows visible, but the old build carried on at the same rate
 regardless. So the drop is the gate's. Not measured: battery life, and Low Power Mode's stretch.
 
+### 5.31 Dropping on a folder
+
+A drop on a folder cell files the dragged items in it, by Finder's rules as the Dock follows them:
+the same volume moves, another volume copies, ⌥ copies and ⌘ moves regardless. AppKit already
+narrows the drag's `draggingSourceOperationMask` by the modifiers — ⌥ to copy alone, ⌘ to generic
+alone — so `FolderDrop.operation` reads the mask and the volume and nothing else, and is tested
+without a drag. The cursor follows: `.copy` draws the plus, `.move` nothing.
+
+Some drops are refused rather than falling through to pinning beside the folder, which is what every
+drop on a folder did before: a folder into itself or one of its own subfolders, and a drop made
+entirely of items already in the folder. Both sides are compared after `resolvingSymlinksInPath`,
+and parents by `pathComponents`, because `URL` equality compares strings and a directory URL may or
+may not end in a slash. Nothing is replaced: a taken name gets Finder's *Keep Both* number,
+`Report 2.pdf`, since a bar has nowhere good to ask Replace or Stop from in the middle of a drop.
+`FileMover` runs the moves off the main thread — a copy out of a disk image is as slow as the app in
+it is large — and the delegate shows one alert naming each item that failed and why.
+
 ## 6. Risks & spikes (do these before writing the app)
 
 | ID | Risk | Result |

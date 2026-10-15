@@ -822,6 +822,14 @@
    Settings.swift:101 */
 "No shortcut. The Apps Menu opens from its cell on the bar." = "No shortcut. The Apps Menu opens from its cell on the bar.";
 
+/* Alert title after a drop on a pinned folder failed for some files; the folder's name
+   AppDelegate.swift */
+"Not everything could be copied to “%@”." = "Not everything could be copied to “%@”.";
+
+/* Alert title after a drop on a pinned folder failed for some files; the folder's name
+   AppDelegate.swift */
+"Not everything could be moved to “%@”." = "Not everything could be moved to “%@”.";
+
 /* Permission status: the system has not been asked, so nothing is decided
    PermissionsService.swift:20 */
 "Not requested yet" = "Not requested yet";

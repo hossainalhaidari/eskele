@@ -12,6 +12,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- **Dropping files on a pinned folder files them there**, as the system Dock does: moved from the
+  same disk, copied from another, copied with ⌥ held and moved with ⌘. A name already taken gets a
+  number rather than replacing anything. Dropping on a folder used to pin the files beside it; drop
+  them in the gap next to the folder for that.
+
 ## [0.3.1] - 2026-10-03
 
 ### Fixed

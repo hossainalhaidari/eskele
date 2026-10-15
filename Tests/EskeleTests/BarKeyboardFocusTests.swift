@@ -20,6 +20,8 @@ private final class Recorder: BarContentViewDelegate {
     func barContent(_ view: BarContentView, didMove item: DockItem, toVisualIndex index: Int) {}
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], on item: DockItem) {}
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int) {}
+    func barContent(
+        _ view: BarContentView, didDropFiles urls: [URL], into folder: URL, operation: FolderDrop.Operation) {}
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint) {}
     func barContent(_ view: BarContentView, springOpen item: DockItem) {}
     func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int) {}

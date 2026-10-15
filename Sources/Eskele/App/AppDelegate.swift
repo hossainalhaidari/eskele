@@ -512,6 +512,29 @@ extension AppDelegate: BarContentViewDelegate {
         model.open(urls, with: item)
     }
 
+    func barContent(
+        _ view: BarContentView, didDropFiles urls: [URL], into folder: URL, operation: FolderDrop.Operation
+    ) {
+        Task {
+            let failures = await FileMover.file(urls, into: folder, operation: operation)
+            guard !failures.isEmpty else { return }
+            // A move that did not happen is worth more than a beep: the file is not where the user
+            // let go of it, and only this can say where it still is and why.
+            NSApp.activate()
+            let alert = NSAlert()
+            let name = FileManager.default.displayName(atPath: folder.path)
+            alert.messageText = operation == .move
+                ? String(
+                    localized: "Not everything could be moved to “\(name)”.",
+                    comment: "Alert title after a drop on a pinned folder failed for some files; the folder's name")
+                : String(
+                    localized: "Not everything could be copied to “\(name)”.",
+                    comment: "Alert title after a drop on a pinned folder failed for some files; the folder's name")
+            alert.informativeText = failures.map { "\($0.name): \($0.reason)" }.joined(separator: "\n")
+            alert.runModal()
+        }
+    }
+
     func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int) {
         guard settings.scrollStepsWindows else { return }
         model.stepWindows(item, by: step)

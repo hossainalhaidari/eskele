@@ -54,6 +54,7 @@ the application forward. Turn it off with *Scroll on an app to step through its 
 | **Drag an app in from Finder** | Pin it |
 | **⌘ while dragging** | Move-only: the item cannot be dropped off the bar by accident |
 | **Drop files on an app** | Open them with it |
+| **Drop files on a folder** | Move them into it — or copy them, from another disk or with ⌥ held |
 | **Drop files on the Trash** | Trash them |
 | **Hold files over a running app or a folder** | Bring the app forward, or open the folder in Finder, to drop them there |
 
@@ -71,6 +72,12 @@ Holding a file over a cell **spring-loads** it, as in the system Dock: after the
 spring-loading delay — *System Settings ▸ Accessibility ▸ Pointer Control* — a running application
 comes forward and a folder opens in Finder. An application that is not running is not launched,
 since dropping on it does that already. Rearranging the bar never springs anything.
+
+Dropping files **on a pinned folder** files them there by Finder's rules: from the same disk they
+move, from another disk they are copied, <kbd>⌥</kbd> copies anyway and <kbd>⌘</kbd> moves anyway.
+The cursor shows a plus when it is a copy. Nothing is ever replaced — a file whose name is taken
+arrives as *Report 2.pdf*, as Finder's *Keep Both* would name it. To pin a file beside a folder
+instead, drop it in the gap next to the folder rather than on it.
 
 ## From the Finder
 

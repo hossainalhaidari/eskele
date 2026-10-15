@@ -10,6 +10,8 @@ protocol BarContentViewDelegate: AnyObject {
     func barContent(_ view: BarContentView, menuForBackgroundAt index: Int) -> NSMenu
     func barContent(_ view: BarContentView, didMove item: DockItem, toVisualIndex index: Int)
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], on item: DockItem)
+    func barContent(
+        _ view: BarContentView, didDropFiles urls: [URL], into folder: URL, operation: FolderDrop.Operation)
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int)
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint)
     /// Scrolling on `item` asks for a step through its app's windows. See `ScrollStep`.
@@ -839,10 +841,18 @@ final class BarContentView: NSView {
         }
         updateSpringLoad(over: itemView(at: point))
 
-        if let target = itemView(at: point), dropAction(for: urls, on: target.item) != nil {
+        if let target = itemView(at: point),
+           let action = dropAction(for: urls, on: target.item, mask: sender.draggingSourceOperationMask) {
             setCaret(nil)
-            setDropTarget(target)
-            return target.item.isTrash ? .delete : .generic
+            setDropTarget(action == .refused ? nil : target)
+            switch action {
+            case .refused: return []
+            case .trash: return .delete
+            case .openWith: return .generic
+            // The cursor says which, as Finder's does: a plus for a copy, nothing for a move.
+            case .file(_, .copy): return .copy
+            case .file(_, .move): return .move
+            }
         }
 
         setDropTarget(nil)
@@ -873,8 +883,16 @@ final class BarContentView: NSView {
         let urls = fileURLs(from: sender)
         guard !urls.isEmpty else { return false }
 
-        if let target = itemView(at: point), dropAction(for: urls, on: target.item) != nil {
-            delegate?.barContent(self, didDropFiles: urls, on: target.item)
+        if let target = itemView(at: point),
+           let action = dropAction(for: urls, on: target.item, mask: sender.draggingSourceOperationMask) {
+            switch action {
+            case .refused:
+                return false
+            case .file(let folder, let operation):
+                delegate?.barContent(self, didDropFiles: urls, into: folder, operation: operation)
+            case .openWith, .trash:
+                delegate?.barContent(self, didDropFiles: urls, on: target.item)
+            }
             return true
         }
 
@@ -919,16 +937,40 @@ final class BarContentView: NSView {
         springLoad.reset()
     }
 
-    private enum DropAction { case openWith, trash }
+    private enum DropAction: Equatable {
+        case openWith, trash
+        case file(URL, FolderDrop.Operation)
+        /// The cell is the target, and there is nothing to do: a file onto the folder it is already
+        /// in, or a folder onto itself. Finder shows no operation for those, and neither does this.
+        case refused
+    }
 
     /// Dropping on the Trash always trashes. Dropping on an app opens the files with it — except
     /// when the payload is itself an application, where "open an app with an app" is meaningless
-    /// and the user plainly meant to pin it.
-    private func dropAction(for urls: [URL], on item: DockItem) -> DropAction? {
+    /// and the user plainly meant to pin it. Dropping on a folder moves or copies the files into it,
+    /// as Finder would; an application goes in too, since a folder is where one is installed.
+    private func dropAction(for urls: [URL], on item: DockItem, mask: NSDragOperation) -> DropAction? {
         if item.isTrash { return .trash }
+        if case .folder(let url) = item.kind { return folderDrop(of: urls, into: url, mask: mask) }
         guard item.isApp else { return nil }
         let allApplications = urls.allSatisfy { $0.pathExtension == "app" }
         return allApplications ? nil : .openWith
+    }
+
+    /// A folder that is gone is no target: the drop falls through to pinning beside it.
+    private func folderDrop(of urls: [URL], into url: URL, mask: NSDragOperation) -> DropAction? {
+        // Both sides resolved the same way, so a path through a symlink and the path it points at
+        // compare equal — the parent check and the folder-into-itself check both depend on it.
+        let folder = url.resolvingSymlinksInPath()
+        guard (try? folder.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true else { return nil }
+        let sources = urls.map { $0.resolvingSymlinksInPath() }
+        let volume = { (url: URL) in
+            (try? url.resourceValues(forKeys: [.volumeIdentifierKey]))?.volumeIdentifier as? NSObject
+        }
+        let target = volume(folder)
+        let sameVolume = target != nil && sources.allSatisfy { volume($0) == target }
+        return FolderDrop.operation(for: sources, into: folder, mask: mask, sameVolume: sameVolume)
+            .map { .file(folder, $0) } ?? .refused
     }
 
     private func fileURLs(from sender: NSDraggingInfo) -> [URL] {
