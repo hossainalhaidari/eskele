@@ -1918,6 +1918,17 @@ operation reported to Finder is `.generic`, not `.delete`, which would tell it t
 the Trash. On a disk's cell, files are copied in by the folder rules of §5.31, unless the volume is
 read-only, which most disk images are.
 
+**Pins on a disk that is away.** A pin is resolved with `.withoutMounting`, so one on a disk that is
+not plugged in resolves to nothing, and `rebuild` used to drop every pin that did and save the
+layout without it: the first rebuild after an eject, or a launch without the disk, forgot its pins
+for good. `PersistedItem.awaitsVolume` now reads the stored path, and a pin under `/Volumes/<name>`
+with nothing mounted at `/Volumes/<name>` stays in `layout.json`, in its place, off the bar. Mounted
+means a volume whose root is that exact path — a folder left in `/Volumes` by a disk that went
+without unmounting is on the startup disk. Every mount and unmount rebuilds the bar, whether or not
+the disk has a cell of its own, so a pin comes back with its disk. A pin whose disk is mounted and
+whose target is still missing was deleted, and is forgotten as before. A server mounted somewhere
+other than `/Volumes` is not covered.
+
 Measured against an HFS+ and an APFS image: both eject when idle, a file held open on the APFS one
 gets the alert naming the holder, and Force Eject then detaches the image. Not yet tried: a real
 USB disk, a server, or either drop gesture on the running bar.

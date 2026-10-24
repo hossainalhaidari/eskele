@@ -23,6 +23,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   bar. Turn it off with *Show disks and connected servers*, under *Contents ▸ Items*, or *Hide Disks*
   in a disk's menu.
 
+### Fixed
+
+- **Pins on a disk that is not plugged in are kept.** A folder, file or application pinned from an
+  external disk, a disk image or a server was forgotten for good as soon as Eskele saw the disk
+  missing — after ejecting it, or on starting up without it. It now leaves the bar while the disk is
+  away and comes back in the same place when the disk does. A pin whose disk is back but whose
+  folder is not was deleted, and is still forgotten.
+
 ## [0.4.0] - 2026-10-15
 
 ### Added

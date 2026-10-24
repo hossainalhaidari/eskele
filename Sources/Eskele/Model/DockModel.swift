@@ -62,10 +62,18 @@ final class DockModel {
     /// Bundle ID reserved for badging the Trash from `badges.json`.
     static let trashBadgeKey = "trash"
 
-    init(persistence: Persistence, running: RunningAppsService, settings: Settings) {
+    /// Whether a disk is mounted at a path — see `PersistedItem.awaitsVolume`. Replaceable so a test
+    /// can mount and unmount disks that do not exist.
+    private let isMountPoint: (String) -> Bool
+
+    init(
+        persistence: Persistence, running: RunningAppsService, settings: Settings,
+        isMountPoint: @escaping (String) -> Bool = PersistedItem.isMountPoint
+    ) {
         self.persistence = persistence
         self.running = running
         self.settings = settings
+        self.isMountPoint = isMountPoint
 
         let stored = persistence.loadLayout()
         if stored.isEmpty {
@@ -131,17 +139,27 @@ final class DockModel {
         launchingPIDs = running.launchingPIDs
         windowsKnown = settings.onlyMarkAppsWithWindows && hasWindowInformation?() == true
         var resolved: [(PersistedItem, DockItem)] = []
+        /// What stays in the layout: everything that resolved, and the pins waiting for their disk.
+        var kept: [PersistedItem] = []
         var dropped = false
 
         for entry in pinned {
             if entry.kind == .separator {
                 resolved.append((entry, DockItem(kind: .separator(entry.token ?? UUID().uuidString), isPinned: true)))
+                kept.append(entry)
                 continue
             }
             guard let url = entry.resolveURL() else {
-                dropped = true
+                // Off the bar until the disk is back, but still in its place in the layout, so it
+                // returns where it was — see `PersistedItem.awaitsVolume`.
+                if entry.awaitsVolume(isMountPoint: isMountPoint) {
+                    kept.append(entry)
+                } else {
+                    dropped = true
+                }
                 continue
             }
+            kept.append(entry)
             switch entry.kind {
             case .app:
                 let ref = AppRef(
@@ -167,7 +185,7 @@ final class DockModel {
 
         if dropped {
             // An app the user pinned has been uninstalled; forget it rather than showing a hole.
-            pinned = resolved.map(\.0)
+            pinned = kept
             persistence.saveLayout(pinned)
         }
 

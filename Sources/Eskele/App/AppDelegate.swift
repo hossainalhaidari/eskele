@@ -91,6 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
             self.model.setVolumes(self.volumes.volumes, ejecting: self.volumes.ejecting)
         }
+        volumes.onMountsChange = { [weak self] in self?.model.rebuild() }
 
         iconOverrides = IconOverrideService(directory: persistence.iconsURL)
         iconOverrides.onChange = { [weak self] in self?.applyIconOverrides() }

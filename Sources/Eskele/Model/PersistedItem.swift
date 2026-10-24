@@ -127,3 +127,33 @@ struct Layout: Codable, Equatable {
 private struct SkippedElement: Decodable {
     init(from decoder: Decoder) throws {}
 }
+
+extension PersistedItem {
+    /// Whether this pin lives on a disk that is not mounted, and so cannot be told from one whose
+    /// target is gone — only the disk coming back can say which.
+    ///
+    /// Read off the stored path: `/Volumes/<name>/…` with nothing mounted at `/Volumes/<name>`. A
+    /// pin that fails to resolve anywhere else, or under a disk that *is* mounted, really has gone.
+    /// Bookmarks are resolved without mounting, so a disk that is not there resolves to nothing
+    /// however good the bookmark, and without this its pins were dropped from the layout for good
+    /// the first time the bar was rebuilt with it unplugged.
+    func awaitsVolume(isMountPoint: (String) -> Bool) -> Bool {
+        guard let path, let mountPoint = Self.volumeMountPoint(of: path) else { return false }
+        return !isMountPoint(mountPoint)
+    }
+
+    /// `/Volumes/<name>` for a path on a disk mounted there, nil for a path anywhere else.
+    static func volumeMountPoint(of path: String) -> String? {
+        let components = URL(fileURLWithPath: path).standardizedFileURL.pathComponents
+        guard components.count >= 3, components[0] == "/", components[1] == "Volumes" else { return nil }
+        return "/Volumes/" + components[2]
+    }
+
+    /// Whether a volume is mounted at exactly `path`. A folder left behind in `/Volumes` by a disk
+    /// that went without unmounting cleanly is on the startup disk, and is not one.
+    static func isMountPoint(_ path: String) -> Bool {
+        let url = URL(fileURLWithPath: path, isDirectory: true)
+        guard let volume = (try? url.resourceValues(forKeys: [.volumeURLKey]))?.volume else { return false }
+        return volume.standardizedFileURL.path == url.standardizedFileURL.path
+    }
+}

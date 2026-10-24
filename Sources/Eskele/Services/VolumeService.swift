@@ -20,6 +20,9 @@ final class VolumeService {
     /// and a cell that sat there unchanged would look like the eject had been ignored.
     private(set) var ejecting: Set<String> = []
     var onChange: (() -> Void)?
+    /// Any volume mounted or went, shown on the bar or not — for the pins that live on one, which
+    /// are hidden while it is away whether or not the disk itself has a cell.
+    var onMountsChange: (() -> Void)?
 
     private var observers: [NSObjectProtocol] = []
     /// Bumped on every read, so a slow read that finishes after a newer one cannot overwrite it.
@@ -34,7 +37,10 @@ final class VolumeService {
         ]
         observers = names.map { name in
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refresh() }
+                MainActor.assumeIsolated {
+                    self?.onMountsChange?()
+                    self?.refresh()
+                }
             }
         }
         refresh()

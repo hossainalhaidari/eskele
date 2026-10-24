@@ -66,6 +66,10 @@ click away.
 The pinned items, in order, each as a security-scoped bookmark plus a bundle identifier. The
 bookmark is what lets a pinned file survive being moved.
 
+A pin on a disk that is not plugged in — an external disk, a disk image, a server — stays in the file
+and off the bar, and comes back in its place when the disk is mounted again. One whose disk is back
+but whose target is not was deleted, and is forgotten.
+
 This file's order is read as an instruction only under *Order ▸ As Arranged*. Under the other two it
 is a tie-break, so equal items never swap places between rebuilds. See
 [Order](../displays/#order).
