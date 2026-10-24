@@ -14,6 +14,8 @@ protocol BarContentViewDelegate: AnyObject {
         _ view: BarContentView, didDropFiles urls: [URL], into folder: URL, operation: FolderDrop.Operation)
     func barContent(_ view: BarContentView, didDropFiles urls: [URL], atVisualIndex index: Int)
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint)
+    /// Disks dropped on the Trash, from Finder or from the bar's own cells.
+    func barContent(_ view: BarContentView, eject volumes: [MountedVolume])
     /// Scrolling on `item` asks for a step through its app's windows. See `ScrollStep`.
     func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int)
     /// A file drag has rested on `item` for the spring-loading delay. See `SpringLoad`.
@@ -50,6 +52,8 @@ final class BarContentView: NSView {
     private var rowRanges: [Range<Int>] = []
     private var caretIndex: Int?
     private var dropTargetView: ItemView?
+    /// Whether `dropTargetView` is the Trash showing Eject, for a drag made only of disks.
+    private var dropTargetEjects = false
     private var springLoad = SpringLoad()
     private var springTimer: Timer?
     private var pulseTimer: Poll?
@@ -301,10 +305,11 @@ final class BarContentView: NSView {
     /// Only in full-width mode, where there is a gap to push into. A bar that hugs its icons has
     /// nothing to spread across.
     ///
-    /// The Trash and the clock both belong at that end, and either can be absent — so this counts
-    /// the *run* of them rather than testing whether one particular cell is last. Testing for the
-    /// Trash alone was what made adding a clock after it un-anchor both: the last cell was no longer
-    /// the Trash, so nothing was held at the end and the whole strip closed up beside the apps.
+    /// The disks, the Trash and the clock all belong at that end, and any of them can be absent — so
+    /// this counts the *run* of them rather than testing whether one particular cell is last.
+    /// Testing for the Trash alone was what made adding a clock after it un-anchor both: the last
+    /// cell was no longer the Trash, so nothing was held at the end and the whole strip closed up
+    /// beside the apps.
     ///
     /// Counted per row because that run is at the very end of the strip, so only the row it fell
     /// into has any of it.
@@ -312,7 +317,7 @@ final class BarContentView: NSView {
         guard settings.spanMode == .fullSpan else { return 0 }
         var count = 0
         for index in range.reversed() {
-            guard items[index].isTrash || items[index].isClock else { break }
+            guard items[index].isTrash || items[index].isClock || items[index].isVolume else { break }
             count += 1
         }
         return count
@@ -356,7 +361,7 @@ final class BarContentView: NSView {
                 addSubview(view)
             }
             view.usesIndicatorLane = !settings.drawsLabels
-            view.icon = icon(for: item)
+            view.icon = shownIcon(on: view)
             if item.isClock {
                 view.clockStyle = settings.clockStyle
                 view.clockLines = ClockContent.lines(
@@ -400,7 +405,14 @@ final class BarContentView: NSView {
 
     /// Re-reads every cell's icon, for when the icons themselves changed rather than the items.
     func reloadIcons() {
-        for view in itemViews { view.icon = icon(for: view.item) }
+        for view in itemViews { view.icon = shownIcon(on: view) }
+    }
+
+    /// The cell's own icon — except on the Trash while a disk is held over it, which stays Eject
+    /// through the rebuilds that go on happening under a drag.
+    private func shownIcon(on view: ItemView) -> NSImage? {
+        guard view === dropTargetView, dropTargetEjects else { return icon(for: view.item) }
+        return IconService.shared.ejectIcon(pointSize: metrics.iconSize, scale: scale)
     }
 
     private func applyProgress() {
@@ -829,6 +841,12 @@ final class BarContentView: NSView {
         if sender.draggingPasteboard.availableType(from: [.eskeleItem]) != nil {
             // Rearranging the bar is not carrying something somewhere; nothing should open.
             cancelSpringLoad()
+            // A disk's own cell carried to the Trash, which is how the Dock ejects one.
+            if let target = itemView(at: point), target.item.isTrash, draggedVolume(sender) != nil {
+                setCaret(nil)
+                setDropTarget(target, ejects: true)
+                return .move
+            }
             setDropTarget(nil)
             setCaret(insertionIndex(at: point))
             return .move
@@ -844,10 +862,16 @@ final class BarContentView: NSView {
         if let target = itemView(at: point),
            let action = dropAction(for: urls, on: target.item, mask: sender.draggingSourceOperationMask) {
             setCaret(nil)
-            setDropTarget(action == .refused ? nil : target)
+            if case .eject = action {
+                setDropTarget(target, ejects: true)
+            } else {
+                setDropTarget(action == .refused ? nil : target)
+            }
             switch action {
             case .refused: return []
             case .trash: return .delete
+            // Not `.delete`, which tells the source the items went in the Trash: a disk does not.
+            case .eject: return .generic
             case .openWith: return .generic
             // The cursor says which, as Finder's does: a plus for a copy, nothing for a move.
             case .file(_, .copy): return .copy
@@ -876,7 +900,11 @@ final class BarContentView: NSView {
 
         if let id = sender.draggingPasteboard.string(forType: .eskeleItem),
            let item = items.first(where: { $0.id == id }) {
-            delegate?.barContent(self, didMove: item, toVisualIndex: insertionIndex(at: point))
+            if let target = itemView(at: point), target.item.isTrash, let volume = item.volume {
+                delegate?.barContent(self, eject: [volume])
+            } else {
+                delegate?.barContent(self, didMove: item, toVisualIndex: insertionIndex(at: point))
+            }
             return true
         }
 
@@ -892,6 +920,8 @@ final class BarContentView: NSView {
                 delegate?.barContent(self, didDropFiles: urls, into: folder, operation: operation)
             case .openWith, .trash:
                 delegate?.barContent(self, didDropFiles: urls, on: target.item)
+            case .eject(let volumes):
+                delegate?.barContent(self, eject: volumes)
             }
             return true
         }
@@ -939,6 +969,7 @@ final class BarContentView: NSView {
 
     private enum DropAction: Equatable {
         case openWith, trash
+        case eject([MountedVolume])
         case file(URL, FolderDrop.Operation)
         /// The cell is the target, and there is nothing to do: a file onto the folder it is already
         /// in, or a folder onto itself. Finder shows no operation for those, and neither does this.
@@ -949,9 +980,24 @@ final class BarContentView: NSView {
     /// when the payload is itself an application, where "open an app with an app" is meaningless
     /// and the user plainly meant to pin it. Dropping on a folder moves or copies the files into it,
     /// as Finder would; an application goes in too, since a folder is where one is installed.
+    ///
+    /// Disks dropped on the Trash eject instead, as in the Dock — all of them, or none: a drop that
+    /// mixes a disk with files is refused, as is the startup disk, which cannot go either way. A
+    /// disk's cell takes files as a folder does, unless it is read-only.
     private func dropAction(for urls: [URL], on item: DockItem, mask: NSDragOperation) -> DropAction? {
-        if item.isTrash { return .trash }
+        if item.isTrash {
+            if let volumes = MountedVolume.ejectsOnTrash(urls, volume: MountedVolume.init(url:)) {
+                return .eject(volumes)
+            }
+            let isVolume = { (url: URL) in
+                (try? url.resourceValues(forKeys: [.isVolumeKey]))?.isVolume == true
+            }
+            return urls.contains(where: isVolume) ? .refused : .trash
+        }
         if case .folder(let url) = item.kind { return folderDrop(of: urls, into: url, mask: mask) }
+        if case .volume(let volume) = item.kind {
+            return volume.isReadOnly ? .refused : folderDrop(of: urls, into: volume.url, mask: mask)
+        }
         guard item.isApp else { return nil }
         let allApplications = urls.allSatisfy { $0.pathExtension == "app" }
         return allApplications ? nil : .openWith
@@ -985,11 +1031,24 @@ final class BarContentView: NSView {
         layoutCaret()
     }
 
-    private func setDropTarget(_ view: ItemView?) {
-        guard dropTargetView !== view else { return }
-        dropTargetView?.isDropTarget = false
+    /// - Parameter ejects: the target is the Trash and the drag is disks, so it shows Eject until
+    ///   the drag moves off — the Dock's cue that letting go ejects rather than deletes.
+    private func setDropTarget(_ view: ItemView?, ejects: Bool = false) {
+        guard dropTargetView !== view || dropTargetEjects != ejects else { return }
+        if let previous = dropTargetView {
+            previous.isDropTarget = false
+            if dropTargetEjects { previous.icon = icon(for: previous.item) }
+        }
         dropTargetView = view
+        dropTargetEjects = ejects && view != nil
         view?.isDropTarget = true
+        if let view, dropTargetEjects { view.icon = shownIcon(on: view) }
+    }
+
+    /// The disk whose own cell is being dragged, if that is what this drag is.
+    private func draggedVolume(_ sender: NSDraggingInfo) -> MountedVolume? {
+        guard let id = sender.draggingPasteboard.string(forType: .eskeleItem) else { return nil }
+        return items.first { $0.id == id }?.volume
     }
 }
 

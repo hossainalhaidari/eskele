@@ -16,6 +16,8 @@ struct DockItem: Identifiable, Equatable {
         case folder(URL)
         case file(URL)
         case separator(String)
+        /// A mounted disk, disk image or server — there while it is mounted, gone once ejected.
+        case volume(MountedVolume)
         case trash(isEmpty: Bool)
         /// The launcher button. Always first, never reorderable — the Start-button convention.
         case appsMenu
@@ -60,6 +62,8 @@ struct DockItem: Identifiable, Equatable {
     var isPinLauncher: Bool = false
     /// Started, but not yet finished starting.
     var isLaunching: Bool = false
+    /// A volume being unmounted, which takes as long as its last writes take to reach the disk.
+    var isEjecting: Bool = false
     /// Not answering. Only ever known with Accessibility — see `WindowInfoService`.
     var isUnresponsive: Bool = false
     /// When the app started, for `SortOrder.launch`. Nil for anything that is not running.
@@ -97,6 +101,7 @@ struct DockItem: Identifiable, Equatable {
         case .folder(let url): "folder:\(url.path)"
         case .file(let url): "file:\(url.path)"
         case .separator(let token): "sep:\(token)"
+        case .volume(let volume): "volume:\(volume.url.path)"
         case .trash: "trash"
         case .appsMenu: "apps-menu"
         case .clock: "clock"
@@ -112,7 +117,7 @@ struct DockItem: Identifiable, Equatable {
         switch kind {
         case .app(let ref), .window(let ref, _): "app:\(ref.bundleID)"
         case .folder(let url), .file(let url): "path:\(url.path)"
-        case .separator, .trash, .appsMenu, .clock: nil
+        case .separator, .volume, .trash, .appsMenu, .clock: nil
         }
     }
 
@@ -124,7 +129,7 @@ struct DockItem: Identifiable, Equatable {
         case .trash: IconOverrideService.trashKey
         case .appsMenu: IconOverrideService.appsMenuKey
         // A path is not a filename. Finder's own Get Info overrides these, and we draw what it says.
-        case .folder, .file, .separator, .clock: nil
+        case .folder, .file, .separator, .volume, .clock: nil
         }
     }
 
@@ -134,6 +139,7 @@ struct DockItem: Identifiable, Equatable {
         case .window(_, let window): window.title
         case .folder(let url), .file(let url): customName ?? url.lastPathComponent
         case .separator: ""
+        case .volume(let volume): volume.name
         case .trash(let isEmpty): isEmpty ? "Trash" : "Trash — not empty"
         case .appsMenu: "Apps"
         case .clock: "Clock"
@@ -148,6 +154,7 @@ struct DockItem: Identifiable, Equatable {
     var hoverTitle: String {
         if isUnresponsive { return "\(displayName) — not responding" }
         if isLaunching { return "\(displayName) — opening…" }
+        if isEjecting { return "\(displayName) — ejecting…" }
         return unstyledHoverTitle
     }
 
@@ -157,7 +164,7 @@ struct DockItem: Identifiable, Equatable {
             window.title.isEmpty ? ref.name : window.title
         case .app:
             windowTitle.map { $0.isEmpty ? displayName : $0 } ?? displayName
-        case .folder, .file:
+        case .folder, .file, .volume:
             displayName
         case .separator:
             ""
@@ -215,6 +222,16 @@ struct DockItem: Identifiable, Equatable {
         return false
     }
 
+    var isVolume: Bool {
+        if case .volume = kind { return true }
+        return false
+    }
+
+    var volume: MountedVolume? {
+        if case .volume(let volume) = kind { return volume }
+        return nil
+    }
+
     /// Items that open a menu on a plain click rather than launching something.
     var opensMenuOnClick: Bool {
         if case .folder = kind { return true }
@@ -233,6 +250,7 @@ struct DockItem: Identifiable, Equatable {
         case .app(let ref): ref.url
         case .window(let ref, _): ref.url
         case .folder(let url), .file(let url): url
+        case .volume(let volume): volume.url
         case .separator: nil
         case .trash: nil
         case .appsMenu, .clock: nil

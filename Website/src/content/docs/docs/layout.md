@@ -55,8 +55,8 @@ Two behaviours are worth knowing:
 *Fit to icons* makes the bar only as long as its contents; *Full width* stretches it edge to edge.
 Alignment decides where the items sit inside it — leading, centred or trailing.
 
-In full-width mode the Trash moves to the far end of the bar — right when horizontal, bottom when
-vertical — instead of sitting beside the applications.
+In full-width mode the Trash, and any disks beside it, move to the far end of the bar — right when
+horizontal, bottom when vertical — instead of sitting beside the applications.
 
 ## Item style
 

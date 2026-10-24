@@ -80,6 +80,16 @@ struct CellDescription: Equatable {
             label = item.displayName
             states = []
 
+        case .volume:
+            role = .button
+            label = item.displayName
+            // The name alone could be a folder's, and Eject is in the cell's menu only for a disk.
+            states = [String(localized: "disk", comment: "VoiceOver: the cell is a mounted disk, disk image or server")]
+            if item.isEjecting {
+                states.insert(
+                    String(localized: "ejecting", comment: "VoiceOver: the disk is being ejected"), at: 0)
+            }
+
         case .trash(let isEmpty):
             role = .button
             label = String(localized: "Trash", comment: "VoiceOver: the Trash cell's name")

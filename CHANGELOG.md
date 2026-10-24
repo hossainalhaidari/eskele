@@ -12,6 +12,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Disks on the bar.** External disks, disk images and connected servers get a cell beside the
+  Trash for as long as they are mounted. Click one to open it in Finder, drop files on it to copy
+  them there, and choose **Eject** from its menu — or drag it onto the Trash, which turns into an
+  Eject icon as in the system Dock. Disks dragged onto the Trash from Finder eject too. When
+  something is still using a disk, Eskele says what, and offers **Try Again** or **Force Eject**.
+  The startup disk and other volumes on the internal drive have nothing to eject and stay off the
+  bar. Turn it off with *Show disks and connected servers*, under *Contents ▸ Items*, or *Hide Disks*
+  in a disk's menu.
+
 ## [0.4.0] - 2026-10-15
 
 ### Added

@@ -24,6 +24,8 @@ final class DockModel {
     private let persistence: Persistence
     private let running: RunningAppsService
     private var trash: TrashSnapshot = .empty
+    private var volumes: [MountedVolume] = []
+    private var ejectingPaths: Set<String> = []
     private var windowsByPID: [pid_t: [WindowRef]] = [:]
     private var attentionPIDs: Set<pid_t> = []
     private var unresponsivePIDs: Set<pid_t> = []
@@ -88,6 +90,13 @@ final class DockModel {
     func setTrash(_ snapshot: TrashSnapshot) {
         guard trash != snapshot else { return }
         trash = snapshot
+        rebuild()
+    }
+
+    func setVolumes(_ volumes: [MountedVolume], ejecting: Set<String>) {
+        guard self.volumes != volumes || ejectingPaths != ejecting else { return }
+        self.volumes = volumes
+        ejectingPaths = ejecting
         rebuild()
     }
 
@@ -201,6 +210,20 @@ final class DockModel {
         groups.tasks = groups.tasks.flatMap(expand)
 
         var trash: [DockItem] = []
+        // Beside the Trash, which is where they go when you are done with them. A disk that is
+        // pinned as a folder already has a cell, and a second one for the same place would be two
+        // icons for one thing.
+        if settings.showVolumes {
+            let pinnedPaths = Set(resolved.compactMap { pair -> String? in
+                if case .folder(let url) = pair.1.kind { return url.standardizedFileURL.path }
+                return nil
+            })
+            for volume in volumes where !pinnedPaths.contains(volume.url.standardizedFileURL.path) {
+                var item = DockItem(kind: .volume(volume))
+                item.isEjecting = ejectingPaths.contains(volume.url.path)
+                trash.append(item)
+            }
+        }
         if settings.showTrash { trash.append(trashItem()) }
         // After the Trash, so the clock is the very last thing on the bar — the end of the strip is
         // where every taskbar has put one, and it is the corner the eye goes to for the time.
@@ -494,6 +517,10 @@ final class DockModel {
     /// - A **window button** is reordered within its own app. Dragged clear of its app's run it
     ///   moves the whole app instead, since a window cannot outrank the app it belongs to.
     func move(_ item: DockItem, toVisualIndex index: Int) {
+        // A disk stays beside the Trash, in name order. It is draggable only so it can be dropped
+        // on the Trash, and moving it among the pins would pin it — a disk that is not plugged in
+        // next time has nothing for a pin to point at.
+        if item.isVolume { return }
         if item.isWindow {
             moveWindow(item, toVisualIndex: index)
             return
@@ -573,6 +600,7 @@ final class DockModel {
         case .folder(let url): "folder:\(url.path)"
         case .file(let url): "file:\(url.path)"
         case .separator(let token): "sep:\(token)"
+        case .volume(let volume): "volume:\(volume.url.path)"
         case .trash: "trash"
         case .appsMenu: "apps-menu"
         case .clock: "clock"
@@ -615,6 +643,8 @@ final class DockModel {
             activateApp(ref, instance: item.instance)
         case .folder(let url), .file(let url):
             NSWorkspace.shared.open(url)
+        case .volume(let volume):
+            NSWorkspace.shared.open(volume.url)
         case .window(let ref, let window):
             // An unreachable window has no element to raise — activating its app is all macOS
             // offers, and is what the Dock's own icon does. Otherwise the window is re-found by

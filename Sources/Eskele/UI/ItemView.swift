@@ -289,13 +289,14 @@ final class ItemView: NSView {
         path.stroke()
     }
 
-    /// Red for an app that has stopped answering, neutral for one that is merely starting.
+    /// Red for an app that has stopped answering, neutral for one that is merely starting — or for
+    /// a disk on its way out.
     ///
     /// `labelColor` rather than uBar's literal white: it has to be visible on a light bar as well as
     /// a dark one, and "the colour text would be" is what that means on this platform.
     private var statusStripeColour: NSColor? {
         if item.isUnresponsive { return NSColor.systemRed.withAlphaComponent(0.55) }
-        if item.isLaunching { return NSColor.labelColor.withAlphaComponent(0.28) }
+        if item.isLaunching || item.isEjecting { return NSColor.labelColor.withAlphaComponent(0.28) }
         return nil
     }
 

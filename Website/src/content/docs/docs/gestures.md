@@ -56,6 +56,8 @@ the application forward. Turn it off with *Scroll on an app to step through its 
 | **Drop files on an app** | Open them with it |
 | **Drop files on a folder** | Move them into it — or copy them, from another disk or with ⌥ held |
 | **Drop files on the Trash** | Trash them |
+| **Drop a disk on the Trash** | Eject it — from the bar or from Finder |
+| **Drop files on a disk** | Copy them onto it |
 | **Hold files over a running app or a folder** | Bring the app forward, or open the folder in Finder, to drop them there |
 
 **Everything in the bar reorders, in both item styles.** Pinned items keep their order on disk.
@@ -78,6 +80,21 @@ move, from another disk they are copied, <kbd>⌥</kbd> copies anyway and <kbd>�
 The cursor shows a plus when it is a copy. Nothing is ever replaced — a file whose name is taken
 arrives as *Report 2.pdf*, as Finder's *Keep Both* would name it. To pin a file beside a folder
 instead, drop it in the gap next to the folder rather than on it.
+
+### Disks
+
+External disks, disk images and connected servers sit beside the Trash for as long as they are
+mounted. Clicking one opens it in Finder; dropping files on it copies them there, unless it is
+read-only, as most disk images are. Its menu has **Eject**, and so does a disk you have pinned as a
+folder. Dragging a disk onto the Trash — its cell, or its icon on Finder's desktop — turns the Trash
+into an Eject icon, and letting go ejects it. A drop that mixes a disk with files is refused, since
+the Trash cannot take the disk.
+
+Ejecting a disk ejects every volume on it, as Finder does. If something still has a file open there,
+Eskele names it and offers **Try Again** or **Force Eject**; forcing it loses whatever that app had
+not saved. The startup disk and other volumes on the internal drive have nothing to eject and are
+left off. Turn disks off with *Show disks and connected servers* under *Settings ▸ Contents*, or
+*Hide Disks* in a disk's menu.
 
 ## From the Finder
 

@@ -67,6 +67,7 @@ built-in Dock while it runs.
 | 32 | Pinned apps as a separate group | **Yes** | In labelled mode a pinned app that is not running is a shortcut, not a task, and is hoisted into a compact tray at the leading end. See §5.19. |
 | 33 | Reorder anything, in either style | **Yes** | Pinned items rewrite the stored layout; running apps and window buttons get in-memory orders. ⌘-drag means "move, never remove". See §5.19. |
 | 34 | Full-screen windows in the window list | **Yes, needs Accessibility** | They frequently report an empty `AXTitle`, which the old title-only filter dropped. Filtered on subrole instead. See §5.16. |
+| 35 | Disks on the bar, Eject, and ejecting on the Trash | **Yes** | Mount notifications for the list, `FileManager` to eject and DiskArbitration to force it. No permission. See §5.32. |
 
 **Bottom line:** everything you asked for is achievable. Both limitations this plan originally
 conceded turned out to be solvable — windows not avoiding the bar (§5.6), and other apps' Dock
@@ -1873,6 +1874,53 @@ may not end in a slash. Nothing is replaced: a taken name gets Finder's *Keep Bo
 `Report 2.pdf`, since a bar has nowhere good to ask Replace or Stop from in the middle of a drop.
 `FileMover` runs the moves off the main thread — a copy out of a disk image is as slow as the app in
 it is large — and the delegate shows one alert naming each item that failed and why.
+
+### 5.32 Disks and Eject
+
+A mounted disk, disk image or server is a `.volume` cell in the trailing run, after the pinned
+folders and files and before the Trash, sorted by name. It is not pinned and cannot be: `move` is a
+no-op for it, because a reorder drag that ends among the pins would otherwise pin it, and a pin to a
+disk that is not plugged in next time has nothing to resolve to. A disk already pinned as a folder
+gets no second cell; the folder's menu carries its Eject instead. In full-width mode the anchored
+run at the far end now counts disks with the Trash and the clock.
+
+**Which volumes.** `mountedVolumeURLs(… options: .skipHiddenVolumes)`, then `MountedVolume.isShown`:
+browsable, not the root file system, and ejectable, removable, not internal or not local. Measured
+on this Mac without the hidden-volume option, every simulator runtime Xcode mounts and the
+`/System/Volumes` set are ejectable, removable or both, so ejectability alone would have put a dozen
+of them on the bar; none is browsable. `Recovery` is internal and not browsable. A server answers
+nothing for `volumeIsInternal`, so only a firm yes keeps a volume off. The list is re-read on
+`didMount`, `didUnmount` and `didRenameVolume` and never otherwise: there is no timer for `PollGate`
+to pause. The read runs detached, since `statfs` on a server that has gone away blocks until the
+network gives up, and a generation counter drops a slow read that finishes after a newer one.
+
+**Ejecting.** `FileManager.unmountVolume(at:options: [.allPartitionsAndEjectDisk, .withoutUI])`,
+which is the same as Finder's Eject: every volume on the disk goes. While it runs the cell carries
+`isEjecting` — neutral stripes, "ejecting…" on the label — because flushing a stick can take seconds.
+A refusal carries `NSFileManagerUnmountDissentingProcessIdentifierErrorKey`; the alert names that
+process (the app's name, else `proc_name`), as Finder's does, rather than the error's own sentence,
+which only repeats that the disk could not be ejected. The alert offers Try Again, Force Eject and
+Cancel, with Escape on Cancel.
+
+**Force Eject has no `FileManager` option**, so it goes through DiskArbitration:
+`DADiskUnmount` with `Force`, then `DADiskEject`, each waited for on a semaphore off the main thread.
+Two things had to be found by trying it against disk images. `kDADiskUnmountOptionWhole` passed on a
+volume is refused as unsupported (`0xF8DA000C`) — it has to go to `DADiskCopyWholeDisk`. And for
+APFS that whole disk is the synthesized container, ejecting which leaves the image or the stick it
+lives on attached; the physical disk is the nearest IOMedia above it with `Whole` set, found by
+walking the service plane. A server has no whole disk and is force-unmounted alone. An eject that
+fails after the unmount succeeded is not reported: nothing on the device can be reached any more.
+
+**Dropping.** On the Trash, a drop made only of shown volumes ejects them, from Finder or from the
+bar's own cells; the Trash draws Finder's `EjectMediaIcon` while such a drag is over it. A drop that
+mixes a disk with files, or carries the startup disk, is refused — the Trash cannot take either. The
+operation reported to Finder is `.generic`, not `.delete`, which would tell it the items went into
+the Trash. On a disk's cell, files are copied in by the folder rules of §5.31, unless the volume is
+read-only, which most disk images are.
+
+Measured against an HFS+ and an APFS image: both eject when idle, a file held open on the APFS one
+gets the alert naming the holder, and Force Eject then detaches the image. Not yet tried: a real
+USB disk, a server, or either drop gesture on the running bar.
 
 ## 6. Risks & spikes (do these before writing the app)
 

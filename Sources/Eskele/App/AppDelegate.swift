@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var systemDock: SystemDockController!
     private var statusItem: StatusItemController!
     private var trashWatcher: TrashWatcher!
+    private var volumes: VolumeService!
     private var badgeService: BadgeService!
     private var progressService: ProgressService!
     private let fileProgress = FileProgressService()
@@ -84,6 +85,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.trashWatcher.isPaused = PollGate.shared.isPaused
         }
         model.setTrash(trashWatcher.snapshot)
+
+        volumes = VolumeService()
+        volumes.onChange = { [weak self] in
+            guard let self else { return }
+            self.model.setVolumes(self.volumes.volumes, ejecting: self.volumes.ejecting)
+        }
 
         iconOverrides = IconOverrideService(directory: persistence.iconsURL)
         iconOverrides.onChange = { [weak self] in self?.applyIconOverrides() }
@@ -536,6 +543,10 @@ extension AppDelegate: BarContentViewDelegate {
         }
     }
 
+    func barContent(_ view: BarContentView, eject volumes: [MountedVolume]) {
+        eject(volumes)
+    }
+
     func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int) {
         guard settings.scrollStepsWindows else { return }
         model.stepWindows(item, by: step)
@@ -692,6 +703,11 @@ extension AppDelegate: BarContentViewDelegate {
                 String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
                 item, #selector(revealInFinder(_:))))
             addRenameItems(to: menu, for: item)
+            // A disk pinned as a folder stands in for the disk's own cell, so it carries its Eject.
+            if let volume = volumes.volume(at: url) {
+                menu.addItem(.separator())
+                menu.addItem(ejectItem(for: volume, item: item))
+            }
             menu.addItem(.separator())
             menu.addItem(addSeparatorItem(before: item))
             menu.addItem(action(
@@ -708,6 +724,22 @@ extension AppDelegate: BarContentViewDelegate {
             menu.addItem(action(
                 String(localized: "Remove from Bar", comment: "Menu item: unpin this item"),
                 item, #selector(togglePin(_:))))
+
+        case .volume(let volume):
+            menu.addItem(action(
+                String(localized: "Open", comment: "Menu item: open the disk in Finder"),
+                item, #selector(openItem(_:))))
+            menu.addItem(action(
+                String(localized: "Show in Finder", comment: "Menu item: reveal this item in Finder"),
+                item, #selector(revealInFinder(_:))))
+            menu.addItem(.separator())
+            menu.addItem(ejectItem(for: volume, item: item))
+            menu.addItem(.separator())
+            let hide = NSMenuItem(
+                title: String(localized: "Hide Disks", comment: "Menu item: stop showing mounted disks on the bar"),
+                action: #selector(hideVolumes), keyEquivalent: "")
+            hide.target = self
+            menu.addItem(hide)
 
         case .separator:
             // The divider between the pin group and the tasks is ours, not the user's; it has no
@@ -1225,6 +1257,82 @@ extension AppDelegate: BarContentViewDelegate {
         var updated = settings
         updated.showAppsMenu = false
         apply(updated)
+    }
+
+    @objc private func openItem(_ sender: NSMenuItem) {
+        guard let item = item(from: sender) else { return }
+        model.activate(item)
+    }
+
+    private func ejectItem(for volume: MountedVolume, item: DockItem) -> NSMenuItem {
+        let eject = action(
+            String(localized: "Eject “\(volume.name)”", comment: "Menu item: eject the named disk"),
+            item, #selector(ejectVolume(_:)))
+        // Twice is no faster, and a second request while the first is flushing only fails.
+        eject.isEnabled = !volumes.ejecting.contains(volume.url.path)
+        return eject
+    }
+
+    @objc private func ejectVolume(_ sender: NSMenuItem) {
+        guard let item = item(from: sender),
+              let volume = item.volume ?? item.url.flatMap({ volumes.volume(at: $0) })
+        else { return }
+        eject([volume])
+    }
+
+    @objc private func hideVolumes() {
+        var updated = settings
+        updated.showVolumes = false
+        apply(updated)
+    }
+
+    /// One after another, so a refusal's alert is about one disk and the next waits for it.
+    private func eject(_ targets: [MountedVolume]) {
+        Task {
+            for volume in targets where !volumes.ejecting.contains(volume.url.path) {
+                do {
+                    try await volumes.eject(volume)
+                } catch {
+                    await offerForceEject(volume, reason: error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    /// What Finder offers when a disk will not go: try again once whatever has it open lets go, or
+    /// unmount it regardless.
+    private func offerForceEject(_ volume: MountedVolume, reason: String) async {
+        NSApp.activate()
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(
+            localized: "“\(volume.name)” wasn’t ejected.",
+            comment: "Alert title when a disk refused to eject; the disk's name")
+        alert.informativeText = String(
+            localized: "\(reason)\n\nForce Eject removes it anyway. Anything still open on it loses what it hasn’t saved.",
+            comment: "Alert body after a disk refused to eject: the system's reason, then what Force Eject costs")
+        alert.addButton(withTitle: String(
+            localized: "Try Again", comment: "Button: ask the disk to eject once more"))
+        alert.addButton(withTitle: String(
+            localized: "Force Eject", comment: "Button: eject the disk even though something is using it"))
+            .hasDestructiveAction = true
+        alert.addButton(withTitle: String(
+            localized: "Cancel", comment: "Button that dismisses a confirmation without acting"))
+        // Escape is Cancel, the safe way out, rather than the button the keyboard would otherwise
+        // fall back to.
+        alert.buttons[2].keyEquivalent = "\u{1b}"
+
+        do {
+            switch alert.runModal() {
+            case .alertFirstButtonReturn: try await volumes.eject(volume)
+            case .alertSecondButtonReturn: try await volumes.forceEject(volume)
+            default: return
+            }
+        } catch {
+            // Gone after all — whatever held it let go between the two attempts.
+            guard volumes.volume(at: volume.url) != nil else { return }
+            await offerForceEject(volume, reason: error.localizedDescription)
+        }
     }
 
     @objc private func openTrash(_ sender: NSMenuItem) {

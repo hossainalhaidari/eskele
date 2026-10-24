@@ -61,6 +61,22 @@ final class IconService {
         return rendered
     }
 
+    /// What the Trash turns into while a disk is held over it, as in the Dock. Finder's own eject
+    /// icon, with the symbol as the fallback.
+    func ejectIcon(pointSize: CGFloat, scale: CGFloat) -> NSImage {
+        let px = pixelSize(pointSize: pointSize, scale: scale)
+        let key = "eject|\(px)" as NSString
+        if let cached = cache.object(forKey: key) { return cached }
+
+        let path = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/EjectMediaIcon.icns"
+        let source = NSImage(contentsOfFile: path)
+            ?? NSImage(systemSymbolName: "eject.fill", accessibilityDescription: "Eject")
+            ?? NSImage()
+        let rendered = render(source, pointSize: pointSize, px: px)
+        cache.setObject(rendered, forKey: key)
+        return rendered
+    }
+
     /// The launcher glyph. Unlike everything else in the bar this is our own chrome rather than
     /// somebody's app icon, so it is a template symbol tinted to match the menu bar's text — and
     /// therefore has to be re-rendered when the effective appearance flips.

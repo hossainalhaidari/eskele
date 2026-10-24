@@ -473,6 +473,12 @@ struct Settings: Codable, Equatable, Sendable {
     /// the current Space, so an app whose windows are all on another desktop goes unmarked too.
     var onlyMarkAppsWithWindows: Bool = false
     var showTrash: Bool = true
+    /// A cell beside the Trash for each disk, disk image and server that is mounted, with Eject on
+    /// it — the things Finder puts on the desktop, for a desktop that is under windows.
+    ///
+    /// On by default, unlike most of what changes the bar: a cell only exists while something is
+    /// plugged in, and a disk image left mounted after an installer is the usual thing it shows.
+    var showVolumes: Bool = true
     /// A clock at the trailing end of the bar.
     ///
     /// Off by default, and the one feature here that duplicates something macOS already gives you:
@@ -608,6 +614,7 @@ struct Settings: Codable, Equatable, Sendable {
         showAccessoryApps = c.lenient(.showAccessoryApps, d.showAccessoryApps)
         onlyMarkAppsWithWindows = c.lenient(.onlyMarkAppsWithWindows, d.onlyMarkAppsWithWindows)
         showTrash = c.lenient(.showTrash, d.showTrash)
+        showVolumes = c.lenient(.showVolumes, d.showVolumes)
         showClock = c.lenient(.showClock, d.showClock)
         clockStyle = c.lenient(.clockStyle, d.clockStyle)
         clockFormat = c.lenient(.clockFormat, d.clockFormat)

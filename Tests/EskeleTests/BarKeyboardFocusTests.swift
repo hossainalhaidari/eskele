@@ -23,6 +23,7 @@ private final class Recorder: BarContentViewDelegate {
     func barContent(
         _ view: BarContentView, didDropFiles urls: [URL], into folder: URL, operation: FolderDrop.Operation) {}
     func barContent(_ view: BarContentView, didDragOutOfBar item: DockItem, at screenPoint: NSPoint) {}
+    func barContent(_ view: BarContentView, eject volumes: [MountedVolume]) {}
     func barContent(_ view: BarContentView, springOpen item: DockItem) {}
     func barContent(_ view: BarContentView, stepWindowsOf item: DockItem, by step: Int) {}
     func barContent(_ view: BarContentView, previewFor item: DockItem) async -> NSImage? { nil }

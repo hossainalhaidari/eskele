@@ -285,6 +285,8 @@ struct ContentsPane: View {
                     }
                 }
                 Toggle("Show the Trash", isOn: $store.settings.showTrash)
+                Toggle("Show disks and connected servers", isOn: $store.settings.showVolumes)
+                    .help("External disks, disk images and servers, beside the Trash, with Eject in their menu.")
                 Toggle("Keep pinned apps in their own group", isOn: $store.settings.separatePinGroup)
                     .disabled(!settings.drawsLabels)
                     .help(settings.drawsLabels
@@ -296,6 +298,7 @@ struct ContentsPane: View {
                 FooterText(
                     settings.showAccessoryApps ? accessoryNote : nil,
                     settings.onlyMarkAppsWithWindows ? unmarkedNote : nil,
+                    settings.showVolumes ? volumesNote : nil,
                     pinGroupNote)
             }
 
@@ -436,6 +439,14 @@ struct ContentsPane: View {
             merely running stays hidden.
             """,
         comment: "Footer under the menu-bar apps toggle")
+
+    private let volumesNote = String(
+        localized: """
+            A disk is on the bar for as long as it is mounted. Drop it on the Trash to eject it, as in \
+            the Dock, or drop files on it to copy them there. The startup disk and other volumes on the \
+            internal drive have nothing to eject and are left off.
+            """,
+        comment: "Footer under the toggle that shows mounted disks on the bar")
 
     private let pinGroupNote = String(
         localized: """

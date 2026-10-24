@@ -69,7 +69,7 @@ extension DockItem {
     /// Whether holding a drag over this cell opens it.
     ///
     /// A running app comes forward — and a window button raises its window — so the file can be
-    /// dropped into it. A folder opens in Finder. An app that is not running does not launch:
+    /// dropped into it. A folder or a disk opens in Finder. An app that is not running does not launch:
     /// starting an app because a drag passed slowly over it is a heavy thing to do by accident,
     /// and dropping on the cell already launches it with the files. The Trash, a file, the clock
     /// and the launcher have nothing to drag into.
@@ -77,7 +77,7 @@ extension DockItem {
         switch kind {
         case .app: isRunning
         case .window: true
-        case .folder: true
+        case .folder, .volume: true
         case .file, .separator, .trash, .appsMenu, .clock: false
         }
     }

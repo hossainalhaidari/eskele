@@ -35,14 +35,14 @@ enum BarComposition {
                 if groupsPins { groups.pins.append(item) } else { groups.tasks.append(item) }
             case .folder, .file:
                 if groupsPins { groups.pins.append(pin(item)) } else { groups.trailing.append(item) }
-            case .trash, .appsMenu, .window, .clock:
+            case .volume, .trash, .appsMenu, .window, .clock:
                 break
             }
         }
         return groups
     }
 
-    /// The finished strip: launcher, pins, divider, tasks, pinned files, Trash.
+    /// The finished strip: launcher, pins, divider, tasks, pinned files, disks, Trash.
     ///
     /// The divider only appears where it has something on both sides of it — a bar of nothing but
     /// pins, or nothing but tasks, should not grow a stray line at one end.
@@ -98,9 +98,9 @@ enum BarComposition {
 
     /// The strip as one display's bar shows it, under `ScreenMode.perDisplay`.
     ///
-    /// Only tasks are filtered. The launcher, the pins, the Trash and the clock carry no display and
-    /// so appear on every bar — a shortcut is not on a display the way a window is, and a second bar
-    /// without a launcher on it would be a worse bar.
+    /// Only tasks are filtered. The launcher, the pins, the disks, the Trash and the clock carry no
+    /// display and so appear on every bar — a shortcut is not on a display the way a window is, and
+    /// a second bar without a launcher on it would be a worse bar.
     static func onDisplay(_ items: [DockItem], _ display: CGDirectDisplayID) -> [DockItem] {
         var kept = items.filter { $0.displays.isEmpty || $0.displays.contains(display) }
         // The divider the bar inserts for itself earns its place by having tasks on the far side of
