@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Apps with no open windows can leave the bar.** Notes, Finder, Mail and other apps keep running
+  after you close their last window, so their button used to stay. *Mark only apps with open
+  windows*, under *Contents ▸ Items*, is now *Apps with no open windows*, with a third choice,
+  *Don't Show*: the button goes when the last window closes and comes back when the app opens one.
+  Pinned apps keep their place and only lose the running indicator, and hidden apps stay so they
+  can be brought back. It needs Accessibility. If you had the old setting on, it becomes *Leave
+  Unmarked*, which is what it did before.
+
 ## [0.5.0] - 2026-10-24
 
 ### Added

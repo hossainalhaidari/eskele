@@ -183,8 +183,11 @@
 /* PreferencesView.swift:488 */
 "Apps Menu" = "Apps Menu";
 
-/* PreferencesView.swift:271 */
-"Apps that are hidden or have closed every window show no running indicator." = "Apps that are hidden or have closed every window show no running indicator.";
+/* PreferencesView.swift:279 */
+"Apps that keep running after their last window closes, and apps that are hidden." = "Apps that keep running after their last window closes, and apps that are hidden.";
+
+/* PreferencesView.swift:276 */
+"Apps with no open windows" = "Apps with no open windows";
 
 /* Explains what the Recent Apps source lists
    Settings.swift:55 */
@@ -381,6 +384,10 @@
    SystemCatalog.swift:144 */
 "Documents" = "Documents";
 
+/* What the bar does with a running app that has no open windows
+   Settings.swift:222 */
+"Don't Show" = "Don't Show";
+
 /* Folder, as Finder names it
    SystemCatalog.swift:146 */
 "Downloads" = "Downloads";
@@ -514,7 +521,11 @@
    AppCategory.swift:67 */
 "Finance" = "Finance";
 
-/* Footer under the toggle that leaves apps with no open windows unmarked
+/* Footer under the choice that removes apps with no open windows from the bar
+   PreferencesView.swift:510 */
+"Finder, Mail and other apps that keep running after their last window closes leave the bar until they open one again. A pinned app keeps its place and only loses its running indicator, and a hidden app stays so it can be brought back. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere leaves the bar until you switch to it." = "Finder, Mail and other apps that keep running after their last window closes leave the bar until they open one again. A pinned app keeps its place and only loses its running indicator, and a hidden app stays so it can be brought back. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere leaves the bar until you switch to it.";
+
+/* Footer under the choice that leaves apps with no open windows unmarked
    PreferencesView.swift:447 */
 "Finder, Mail and other apps that keep running after their last window closes lose their running indicator until they open one again, and so does a hidden app. The app you are using is always marked. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere goes unmarked until you switch to it." = "Finder, Mail and other apps that keep running after their last window closes lose their running indicator until they open one again, and so does a hidden app. The app you are using is always marked. Windows on another desktop cannot be seen from this one, so an app whose windows are all elsewhere goes unmarked until you switch to it.";
 
@@ -705,6 +716,10 @@
 /* PreferencesView.swift:114 */
 "Layout" = "Layout";
 
+/* What the bar does with a running app that has no open windows
+   Settings.swift:220 */
+"Leave Unmarked" = "Leave Unmarked";
+
 /* Screen edge the bar sits on
    Settings.swift:12, Settings.swift:172 */
 "Left" = "Left";
@@ -747,8 +762,9 @@
    Settings.swift:239 */
 "Main Display Only" = "Main Display Only";
 
-/* PreferencesView.swift:270 */
-"Mark only apps with open windows" = "Mark only apps with open windows";
+/* What the bar does with a running app that has no open windows
+   Settings.swift:218 */
+"Mark as Running" = "Mark as Running";
 
 /* Bar follows the system light/dark setting
    Settings.swift:254 */

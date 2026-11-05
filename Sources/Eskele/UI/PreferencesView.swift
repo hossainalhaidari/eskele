@@ -273,8 +273,10 @@ struct ContentsPane: View {
                         accessibility = PermissionsService.accessibilityStatus
                     }
                 }
-                Toggle("Mark only apps with open windows", isOn: $store.settings.onlyMarkAppsWithWindows)
-                    .help("Apps that are hidden or have closed every window show no running indicator.")
+                Picker("Apps with no open windows", selection: $store.settings.windowlessApps) {
+                    ForEach(WindowlessApps.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                .help("Apps that keep running after their last window closes, and apps that are hidden.")
                 if settings.onlyMarkAppsWithWindows, accessibility != .granted {
                     PermissionPrompt(message: String(
                         localized: "Telling which apps have no windows needs Accessibility.",
@@ -297,7 +299,8 @@ struct ContentsPane: View {
             } footer: {
                 FooterText(
                     settings.showAccessoryApps ? accessoryNote : nil,
-                    settings.onlyMarkAppsWithWindows ? unmarkedNote : nil,
+                    settings.windowlessApps == .unmarked ? unmarkedNote : nil,
+                    settings.windowlessApps == .hidden ? windowlessHiddenNote : nil,
                     settings.showVolumes ? volumesNote : nil,
                     pinGroupNote)
             }
@@ -502,7 +505,17 @@ struct ContentsPane: View {
             you are using is always marked. Windows on another desktop cannot be seen from this \
             one, so an app whose windows are all elsewhere goes unmarked until you switch to it.
             """,
-        comment: "Footer under the toggle that leaves apps with no open windows unmarked")
+        comment: "Footer under the choice that leaves apps with no open windows unmarked")
+
+    private let windowlessHiddenNote = String(
+        localized: """
+            Finder, Mail and other apps that keep running after their last window closes leave the \
+            bar until they open one again. A pinned app keeps its place and only loses its running \
+            indicator, and a hidden app stays so it can be brought back. Windows on another desktop \
+            cannot be seen from this one, so an app whose windows are all elsewhere leaves the bar \
+            until you switch to it.
+            """,
+        comment: "Footer under the choice that removes apps with no open windows from the bar")
 
     private let attentionNote = String(
         localized: """

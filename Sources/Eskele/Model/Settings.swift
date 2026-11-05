@@ -224,6 +224,31 @@ enum SortOrder: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// What the bar does with a running app that has nothing open — every window closed, or hidden.
+///
+/// Finder, Mail and Notes are the usual cases: closing their last window does not quit them, so the
+/// system Dock keeps them marked as running all day.
+enum WindowlessApps: String, Codable, CaseIterable, Sendable {
+    /// What the Dock does: running is running.
+    case marked
+    /// Still on the bar, without the running indicator.
+    case unmarked
+    /// Off the bar, the way a taskbar drops a button with its last window. A pinned app keeps its
+    /// cell, which is the place the user gave it, and is only unmarked.
+    case hidden
+
+    var title: String {
+        switch self {
+        case .marked: String(
+            localized: "Mark as Running", comment: "What the bar does with a running app that has no open windows")
+        case .unmarked: String(
+            localized: "Leave Unmarked", comment: "What the bar does with a running app that has no open windows")
+        case .hidden: String(
+            localized: "Don't Show", comment: "What the bar does with a running app that has no open windows")
+        }
+    }
+}
+
 /// Which displays get a bar, and what goes on it.
 enum ScreenMode: String, Codable, CaseIterable, Sendable {
     /// The same bar on every display — what uBar calls Mirror, and our default.
@@ -465,13 +490,12 @@ struct Settings: Codable, Equatable, Sendable {
     /// and it is the kind of thing a user should opt into rather than discover. See
     /// `AccessoryAppsService`.
     var showAccessoryApps: Bool = false
-    /// Leave the running indicator off apps that are running with nothing open — hidden, or with
-    /// every window closed. Finder and Mail are the usual cases: they never really quit, so without
-    /// this they are marked as running all day.
+    /// What happens to apps that are running with nothing open — see `WindowlessApps`.
     ///
-    /// Off by default: it changes what an established bar looks like, and it can only see windows on
-    /// the current Space, so an app whose windows are all on another desktop goes unmarked too.
-    var onlyMarkAppsWithWindows: Bool = false
+    /// `marked` by default: either of the others changes what an established bar looks like, and
+    /// windows can only be seen on the current Space, so an app whose windows are all on another
+    /// desktop counts as having none.
+    var windowlessApps: WindowlessApps = .marked
     var showTrash: Bool = true
     /// A cell beside the Trash for each disk, disk image and server that is mounted, with Eject on
     /// it — the things Finder puts on the desktop, for a desktop that is under windows.
@@ -564,6 +588,15 @@ struct Settings: Codable, Equatable, Sendable {
     /// so each toggle is locked while it is the last one standing.
     var hasSettingsRoute: Bool { showStatusItem || showAppsMenu }
 
+    /// Whether a running app with nothing open loses its indicator. Removing it from the bar does
+    /// too, for the pinned apps that keep their cell.
+    var onlyMarkAppsWithWindows: Bool { windowlessApps != .marked }
+
+    /// Keys a settings file may still hold from an older version, read once to carry them over.
+    private enum LegacyKeys: String, CodingKey {
+        case onlyMarkAppsWithWindows
+    }
+
     /// A bar that spans the whole edge should meet the screen corners squarely, the way the menu bar
     /// does; rounding only makes sense when the bar is a floating slab.
     var effectiveCornerRadius: Double { spanMode == .fullSpan ? 0 : cornerRadius }
@@ -612,7 +645,10 @@ struct Settings: Codable, Equatable, Sendable {
         showStatusItem = c.lenient(.showStatusItem, d.showStatusItem)
         showRunningUnpinned = c.lenient(.showRunningUnpinned, d.showRunningUnpinned)
         showAccessoryApps = c.lenient(.showAccessoryApps, d.showAccessoryApps)
-        onlyMarkAppsWithWindows = c.lenient(.onlyMarkAppsWithWindows, d.onlyMarkAppsWithWindows)
+        // A file from before it was a choice holds the toggle it replaced, which was its middle option.
+        let legacy = try? decoder.container(keyedBy: LegacyKeys.self)
+        let wasUnmarking = legacy?.lenient(.onlyMarkAppsWithWindows, false) ?? false
+        windowlessApps = c.lenient(.windowlessApps, wasUnmarking ? .unmarked : d.windowlessApps)
         showTrash = c.lenient(.showTrash, d.showTrash)
         showVolumes = c.lenient(.showVolumes, d.showVolumes)
         showClock = c.lenient(.showClock, d.showClock)

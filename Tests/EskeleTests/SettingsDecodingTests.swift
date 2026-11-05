@@ -45,9 +45,27 @@ private func decodeSettings(_ json: String) -> Settings? {
 /// Unmarking windowless apps changes how an established bar looks, so a file written before the
 /// setting existed has to keep every running app marked.
 @Test func everyRunningAppStaysMarkedUntilAskedOtherwise() throws {
-    #expect(Settings().onlyMarkAppsWithWindows == false)
-    #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).onlyMarkAppsWithWindows == false)
-    #expect(try #require(decodeSettings(#"{"onlyMarkAppsWithWindows": true}"#)).onlyMarkAppsWithWindows)
+    #expect(Settings().windowlessApps == .marked)
+    #expect(try #require(decodeSettings(#"{"showTrash": false}"#)).windowlessApps == .marked)
+    #expect(try #require(decodeSettings(#"{"windowlessApps": "hidden"}"#)).windowlessApps == .hidden)
+}
+
+/// The choice replaced a toggle, and a file written while it was one keeps what it asked for.
+@Test func theOldUnmarkingToggleCarriesOver() throws {
+    #expect(try #require(decodeSettings(#"{"onlyMarkAppsWithWindows": true}"#)).windowlessApps == .unmarked)
+    #expect(try #require(decodeSettings(#"{"onlyMarkAppsWithWindows": false}"#)).windowlessApps == .marked)
+    // Anything written since says so itself, whatever the old key is still holding.
+    let both = #"{"onlyMarkAppsWithWindows": true, "windowlessApps": "hidden"}"#
+    #expect(try #require(decodeSettings(both)).windowlessApps == .hidden)
+}
+
+/// The old key is read, never written: a saved file carries the choice under its own name.
+@Test func theOldToggleIsNotWrittenBack() throws {
+    var settings = Settings()
+    settings.windowlessApps = .unmarked
+    let json = try #require(String(data: JSONEncoder().encode(settings), encoding: .utf8))
+    #expect(!json.contains("onlyMarkAppsWithWindows"))
+    #expect(try #require(decodeSettings(json)).windowlessApps == .unmarked)
 }
 
 /// A settings file written before rows existed must decode as the one-row bar it was.

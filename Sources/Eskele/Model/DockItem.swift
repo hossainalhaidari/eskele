@@ -89,7 +89,7 @@ struct DockItem: Identifiable, Equatable {
     /// Space we cannot reach. Showing it everywhere is the mirror behaviour; showing it nowhere
     /// would lose an app the user can plainly see.
     var displays: Set<CGDirectDisplayID> = []
-    /// Running, but drawn without the running indicator — see `Settings.onlyMarkAppsWithWindows`.
+    /// Running, but drawn without the running indicator — see `Settings.windowlessApps`.
     var isUnmarked: Bool = false
 
     var id: String {
@@ -259,7 +259,7 @@ struct DockItem: Identifiable, Equatable {
 }
 
 extension DockItem {
-    /// Whether a running app has nothing open, for `Settings.onlyMarkAppsWithWindows`.
+    /// Whether a running app has nothing open, for `Settings.windowlessApps`.
     ///
     /// Hidden counts as nothing open: its windows are out of sight until it is brought back. The
     /// app in front is always marked, because it owns the menu bar whether or not it has a window,
@@ -272,5 +272,14 @@ extension DockItem {
     ) -> Bool {
         guard !isFrontmost, !isLaunching else { return false }
         return isHidden || (windowsKnown && windows == 0)
+    }
+
+    /// Whether a running app leaves the bar, for `WindowlessApps.hidden`.
+    ///
+    /// Not quite `hasNothingOpen`. A hidden app stays, because its cell is the way back to the
+    /// windows it still has. The app in front does not: closing its last window is exactly when its
+    /// button is expected to go, and the menu bar still says which app is active.
+    static func isWindowless(isHidden: Bool, isLaunching: Bool, windows: Int, windowsKnown: Bool) -> Bool {
+        windowsKnown && windows == 0 && !isHidden && !isLaunching
     }
 }

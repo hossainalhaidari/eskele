@@ -38,7 +38,7 @@ final class DockModel {
     private var frontmostPID: pid_t?
     /// Likewise: this is derived work, and `decorate` runs for every cell on the bar.
     private var launchingPIDs: Set<pid_t> = []
-    /// Likewise, and only asked while `Settings.onlyMarkAppsWithWindows` has a use for it.
+    /// Likewise, and only asked while `Settings.windowlessApps` has a use for it.
     private var windowsKnown = false
 
     /// Where the user has dragged running apps that have no stored slot, by bundle ID.
@@ -214,7 +214,18 @@ final class DockModel {
                 if running.app(withBundleID: id)?.processIdentifier != app.processIdentifier {
                     item.instance = app.processIdentifier
                 }
-                groups.tasks.append(decorated(item))
+                item = decorated(item)
+                // Menu-bar apps are left alone: they are only here because they have a window, and
+                // they have a rule of their own for when that stops being true.
+                if settings.windowlessApps == .hidden, app.activationPolicy == .regular,
+                   DockItem.isWindowless(
+                       isHidden: item.isHidden,
+                       isLaunching: item.isLaunching,
+                       windows: item.windowCount,
+                       windowsKnown: windowsKnown) {
+                    continue
+                }
+                groups.tasks.append(item)
             }
         }
 
