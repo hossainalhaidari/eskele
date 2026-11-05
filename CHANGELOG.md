@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-05
+
 ### Added
 
 - **Apps with no open windows can leave the bar.** Notes, Finder, Mail and other apps keep running
@@ -166,7 +168,8 @@ The first release.
 - **English throughout, translatable everywhere**: every string is in a catalogue the test suite
   checks against the source, so a second language is a directory away.
 
-[Unreleased]: https://github.com/hossainalhaidari/eskele/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/hossainalhaidari/eskele/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/hossainalhaidari/eskele/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/hossainalhaidari/eskele/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/hossainalhaidari/eskele/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/hossainalhaidari/eskele/compare/v0.3.0...v0.3.1
